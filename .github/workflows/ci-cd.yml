@@ -1,7 +1,7 @@
 name: CI/CD
 on:
   push:
-    branches: [master]
+    branches: [ignore] # [master]
     paths:
       - .github/workflows/ci-cd.yml
       - src/**
@@ -28,7 +28,7 @@ jobs:
           echo ::set-output name=total::$(echo "$CHANGES" | wc -l)
     outputs:
       ci-changes: ${{ steps.change-detected.outputs.ci-changes }}
-      ********: ${{ steps.change-detected.outputs.******** }}
+      #********: ${{ steps.change-detected.outputs.******** }}
       total: ${{ steps.change-detected.outputs.total }}
 
   build:
