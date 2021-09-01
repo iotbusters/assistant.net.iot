@@ -1,11 +1,29 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Assistant.Net.Scheduler.Api</RootNamespace>
+    <AssemblyName>assistant.net.scheduler.api</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
+    <PackageReference Include="assistant.net.diagnostics" Version="0.1.69" />
+    <PackageReference Include="assistant.net.messaging.web.client" Version="0.1.69" />
+    <PackageReference Include="assistant.net.storage" Version="0.1.69" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Http\" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <Product>Assistant.NET</Product>
+    <RepositoryType>github</RepositoryType>
+    <Description>API for configuring automating jobs.</Description>
+  </PropertyGroup>
 
 </Project>
