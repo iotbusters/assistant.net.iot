@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Mocks
@@ -20,7 +21,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Mocks
 
         public TRequest? Request { get; private set; }
 
-        public async Task<TResponse> Handle(TRequest message)
+        public async Task<TResponse> Handle(TRequest message, CancellationToken token)
         {
             Request = message;
             var response = await handle(message);

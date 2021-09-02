@@ -3,6 +3,7 @@ using Assistant.Net.Scheduler.Api.Commands;
 using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Storage.Abstractions;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.CommandHandlers
@@ -14,10 +15,11 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
         public JobCreateCommandHandler(IStorage<Guid, JobModel> storage) =>
             this.storage = storage;
 
-        public Task<Guid> Handle(JobCreateCommand command)
+        public async Task<Guid> Handle(JobCreateCommand command, CancellationToken token)
         {
             var model = new JobModel(Guid.NewGuid(), command.Name, command.Trigger, command.TriggerEventMask, command.Type, command.Parameters);
-            return storage.AddOrGet(model.Id, model).MapSuccess(x => x.Id);
+            await storage.AddOrGet(model.Id, model);
+            return model.Id;
         }
     }
 }

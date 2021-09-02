@@ -4,6 +4,7 @@ using Assistant.Net.Scheduler.Api.Exceptions;
 using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Storage.Abstractions;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.CommandHandlers
@@ -15,14 +16,13 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
         public JobUpdateCommandHandler(IStorage<Guid, JobModel> storage) =>
             this.storage = storage;
 
-        public Task Handle(JobUpdateCommand command)
+        public Task Handle(JobUpdateCommand command, CancellationToken token)
         {
             var model = new JobModel(command.Id, command.Name, command.Trigger, command.TriggerEventMask, command.Type, command.Parameters);
             return storage.AddOrUpdate(
                     model.Id,
                     addFactory: _ => throw new NotFoundException(),
-                    updateFactory: (_, _) => model)
-                .MapSuccess(x => x.Id);
+                    updateFactory: (_, _) => model);
         }
     }
 }

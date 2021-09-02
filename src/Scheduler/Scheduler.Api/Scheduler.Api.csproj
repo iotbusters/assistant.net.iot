@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.diagnostics" Version="0.1.69" />
-    <PackageReference Include="assistant.net.messaging.web.client" Version="0.1.69" />
-    <PackageReference Include="assistant.net.storage" Version="0.1.69" />
+    <PackageReference Include="assistant.net.diagnostics" Version="0.1.70" />
+    <PackageReference Include="assistant.net.messaging.web.client" Version="0.1.70" />
+    <PackageReference Include="assistant.net.storage" Version="0.1.70" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
   </ItemGroup>

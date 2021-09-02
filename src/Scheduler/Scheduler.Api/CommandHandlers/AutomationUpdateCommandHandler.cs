@@ -5,6 +5,7 @@ using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Storage.Abstractions;
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.CommandHandlers
@@ -16,7 +17,7 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
         public AutomationUpdateCommandHandler(IStorage<Guid, AutomationModel> storage) =>
             this.storage = storage;
 
-        public Task Handle(AutomationUpdateCommand command)
+        public Task Handle(AutomationUpdateCommand command, CancellationToken token)
         {
             var model = new AutomationModel(command.Id, command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)));
             return storage.AddOrUpdate(

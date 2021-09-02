@@ -4,6 +4,7 @@ using Assistant.Net.Scheduler.Api.Exceptions;
 using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Storage.Abstractions;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.CommandHandlers
@@ -15,7 +16,7 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
         public JobQueryHandler(IStorage<Guid, JobModel> storage) =>
             this.storage = storage;
 
-        public Task<JobModel> Handle(JobQuery command) =>
-            storage.GetOrDefault(command.Id).MapSuccess(x => x ?? throw new NotFoundException());
+        public async Task<JobModel> Handle(JobQuery command, CancellationToken token) =>
+            await storage.GetOrDefault(command.Id) ?? throw new NotFoundException();
     }
 }

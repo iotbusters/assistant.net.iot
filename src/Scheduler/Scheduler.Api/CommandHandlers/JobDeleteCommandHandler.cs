@@ -3,6 +3,7 @@ using Assistant.Net.Scheduler.Api.Commands;
 using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Storage.Abstractions;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.CommandHandlers
@@ -14,7 +15,7 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
         public JobDeleteCommandHandler(IStorage<Guid, JobModel> storage) =>
             this.storage = storage;
 
-        public async Task Handle(JobDeleteCommand command) =>
+        public async Task Handle(JobDeleteCommand command, CancellationToken token) =>
             await storage.TryRemove(command.Id);
     }
 }

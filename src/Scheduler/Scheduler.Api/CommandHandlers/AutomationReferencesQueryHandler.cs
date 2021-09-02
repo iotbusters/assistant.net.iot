@@ -4,6 +4,7 @@ using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Storage.Abstractions;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.CommandHandlers
@@ -15,7 +16,7 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
         public AutomationReferencesQueryHandler(IStorage<Guid, AutomationModel> storage) =>
             this.storage = storage;
 
-        public Task<IEnumerable<AutomationReferenceModel>> Handle(AutomationReferencesQuery command) =>
+        public Task<IEnumerable<AutomationReferenceModel>> Handle(AutomationReferencesQuery command, CancellationToken token) =>
             storage.GetKeys().Select(x => new AutomationReferenceModel(x)).AsEnumerableAsync();
     }
 }
