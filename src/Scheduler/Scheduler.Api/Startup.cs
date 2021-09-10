@@ -71,6 +71,7 @@ namespace Assistant.Net.Scheduler.Api
             });
 
             services.AddTransient<CorrelationMiddleware>();
+            services.AddTransient<DiagnosticMiddleware>();
             services.AddTransient<ExceptionHandlingMiddleware>();
         }
 
@@ -83,6 +84,7 @@ namespace Assistant.Net.Scheduler.Api
             //.UseAuthorization()
             // todo: move middlewares into extensions
             .UseMiddleware<CorrelationMiddleware>()
+            .UseMiddleware<DiagnosticMiddleware>()
             .UseMiddleware<ExceptionHandlingMiddleware>()
             .UseEndpoints(endpoints => endpoints
                 .MapControllers()

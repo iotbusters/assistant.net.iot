@@ -1,5 +1,4 @@
 ﻿using Assistant.Net.Abstractions;
-using Assistant.Net.Diagnostics.Abstractions;
 using Assistant.Net.Scheduler.Api.Exceptions;
 using Assistant.Net.Serialization.Abstractions;
 using Microsoft.AspNetCore.Http;
@@ -13,29 +12,24 @@ namespace Assistant.Net.Scheduler.Api.Middlewares
     internal class ExceptionHandlingMiddleware : IMiddleware
     {
         private readonly ILogger<ExceptionHandlingMiddleware> logger;
-        private readonly IDiagnosticFactory diagnosticFactory;
         private readonly ISerializer<ProblemDetails> serializer;
         private readonly ISystemLifetime lifetime;
 
         public ExceptionHandlingMiddleware(
             ILogger<ExceptionHandlingMiddleware> logger,
-            IDiagnosticFactory diagnosticFactory,
             ISerializer<ProblemDetails> serializer,
             ISystemLifetime lifetime)
         {
             this.logger = logger;
-            this.diagnosticFactory = diagnosticFactory;
             this.serializer = serializer;
             this.lifetime = lifetime;
         }
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            var operation = diagnosticFactory.Start("exception-handling-middleware");
             try
             {
                 await next(context);
-                operation.Complete();
             }
             catch (NotFoundException e)
             {
@@ -43,8 +37,6 @@ namespace Assistant.Net.Scheduler.Api.Middlewares
 
                 await serializer.Serialize(context.Response.Body, ResourceNotFoundProblem, lifetime.Stopping);
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
-
-                operation.Complete();
             }
             catch (Exception e)
             {
@@ -52,8 +44,6 @@ namespace Assistant.Net.Scheduler.Api.Middlewares
 
                 await serializer.Serialize(context.Response.Body, RequestFailedProblem, lifetime.Stopping);
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-
-                operation.Fail();
             }
         }
 
