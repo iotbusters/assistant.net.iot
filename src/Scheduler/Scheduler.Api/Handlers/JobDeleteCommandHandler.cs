@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.CommandHandlers
+namespace Assistant.Net.Scheduler.Api.Handlers
 {
     internal class JobDeleteCommandHandler : IMessageHandler<JobDeleteCommand>
     {
@@ -16,6 +16,6 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
             this.storage = storage;
 
         public async Task Handle(JobDeleteCommand command, CancellationToken token) =>
-            await storage.TryRemove(command.Id);
+            await storage.TryRemove(command.Id, token);
     }
 }

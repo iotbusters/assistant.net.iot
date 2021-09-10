@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.CommandHandlers
+namespace Assistant.Net.Scheduler.Api.Handlers
 {
     internal class JobCreateCommandHandler : IMessageHandler<JobCreateCommand, Guid>
     {
@@ -18,7 +18,7 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
         public async Task<Guid> Handle(JobCreateCommand command, CancellationToken token)
         {
             var model = new JobModel(Guid.NewGuid(), command.Name, command.Trigger, command.TriggerEventMask, command.Type, command.Parameters);
-            await storage.AddOrGet(model.Id, model);
+            await storage.AddOrGet(model.Id, model, token);
             return model.Id;
         }
     }

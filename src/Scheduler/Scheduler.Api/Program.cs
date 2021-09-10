@@ -13,10 +13,11 @@ namespace Assistant.Net.Scheduler.Api
             CreateHostBuilder(args).Build().Run();
         }
 
+        /// <summary/>
         public static IHostBuilder CreateHostBuilder(string[] args) => Host
             .CreateDefaultBuilder(args)
             .ConfigureWebHostDefaults(b => b
-                .ConfigureAppConfiguration((ctx, cb) => cb
+                .ConfigureAppConfiguration((_, cb) => cb
                     .AddEnvironmentVariables("ASSISTANTNET")
                     .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true))
                 .UseStartup<Startup>());

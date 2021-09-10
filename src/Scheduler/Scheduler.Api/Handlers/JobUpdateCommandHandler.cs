@@ -7,7 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.CommandHandlers
+namespace Assistant.Net.Scheduler.Api.Handlers
 {
     internal class JobUpdateCommandHandler : IMessageHandler<JobUpdateCommand>
     {
@@ -22,7 +22,8 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
             return storage.AddOrUpdate(
                     model.Id,
                     addFactory: _ => throw new NotFoundException(),
-                    updateFactory: (_, _) => model);
+                    updateFactory: (_, _) => model,
+                    token);
         }
     }
 }

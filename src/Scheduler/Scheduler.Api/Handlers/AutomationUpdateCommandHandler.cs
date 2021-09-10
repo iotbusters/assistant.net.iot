@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.CommandHandlers
+namespace Assistant.Net.Scheduler.Api.Handlers
 {
     internal class AutomationUpdateCommandHandler : IMessageHandler<AutomationUpdateCommand>
     {
@@ -23,7 +23,8 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
             return storage.AddOrUpdate(
                     command.Id,
                     addFactory: _ => throw new NotFoundException(),
-                    updateFactory: (_, _) => model);
+                    updateFactory: (_, _) => model,
+                    token);
         }
     }
 }

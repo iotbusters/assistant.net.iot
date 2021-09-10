@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.CommandHandlers
+namespace Assistant.Net.Scheduler.Api.Handlers
 {
     internal class AutomationCreateCommandHandler : IMessageHandler<AutomationCreateCommand, Guid>
     {
@@ -19,7 +19,7 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
         public async Task<Guid> Handle(AutomationCreateCommand command, CancellationToken token)
         {
             var model = new AutomationModel(Guid.NewGuid(), command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)));
-            await storage.AddOrGet(model.Id, model);
+            await storage.AddOrGet(model.Id, model, token);
             return model.Id;
         }
     }

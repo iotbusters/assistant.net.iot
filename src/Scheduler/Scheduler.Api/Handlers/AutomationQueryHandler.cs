@@ -7,7 +7,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.CommandHandlers
+namespace Assistant.Net.Scheduler.Api.Handlers
 {
     internal class AutomationQueryHandler : IMessageHandler<AutomationQuery, AutomationModel>
     {
@@ -17,6 +17,6 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
             this.storage = storage;
 
         public async Task<AutomationModel> Handle(AutomationQuery command, CancellationToken token) =>
-            await storage.GetOrDefault(command.Id) ?? throw new NotFoundException();
+            await storage.GetOrDefault(command.Id, token) ?? throw new NotFoundException();
     }
 }

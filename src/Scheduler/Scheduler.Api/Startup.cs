@@ -1,6 +1,7 @@
 using Assistant.Net.Messaging;
-using Assistant.Net.Scheduler.Api.CommandHandlers;
+using Assistant.Net.Scheduler.Api.Handlers;
 using Assistant.Net.Scheduler.Api.Conventions;
+using Assistant.Net.Scheduler.Api.Extensions;
 using Assistant.Net.Scheduler.Api.Middlewares;
 using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Storage;
@@ -29,11 +30,15 @@ namespace Assistant.Net.Scheduler.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services
+                .AddDiagnosticContextWebHosted()
                 .AddStorage(b => b
                     .AddLocal<Guid, AutomationModel>()
                     .AddLocal<Guid, JobModel>())
-                .AddMessagingClient(b => b.AddConfiguration<LocalCommandHandlersConfiguration>());
+                .AddMessagingClient(b => b
+                    .ClearInterceptors()
+                    .AddConfiguration<LocalCommandHandlersConfiguration>());
 
+            // todo: enrich request details, correlation id, machine name, thread...
             services.AddLogging();
 
             // todo: implement authentication and authorization
@@ -65,6 +70,7 @@ namespace Assistant.Net.Scheduler.Api
                 //o.AddSecurityRequirement(new OpenApiSecurityRequirement { });
             });
 
+            services.AddTransient<CorrelationMiddleware>();
             services.AddTransient<ExceptionHandlingMiddleware>();
         }
 
@@ -75,6 +81,8 @@ namespace Assistant.Net.Scheduler.Api
             // todo: implement authentication
             //.UseAuthentication()
             //.UseAuthorization()
+            // todo: move middlewares into extensions
+            .UseMiddleware<CorrelationMiddleware>()
             .UseMiddleware<ExceptionHandlingMiddleware>()
             .UseEndpoints(endpoints => endpoints
                 .MapControllers()

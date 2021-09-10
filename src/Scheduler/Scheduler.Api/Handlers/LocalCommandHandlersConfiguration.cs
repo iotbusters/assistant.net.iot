@@ -2,9 +2,9 @@
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
 
-namespace Assistant.Net.Scheduler.Api.CommandHandlers
+namespace Assistant.Net.Scheduler.Api.Handlers
 {
-    public class LocalCommandHandlersConfiguration : IMessageConfiguration
+    internal class LocalCommandHandlersConfiguration : IMessageConfiguration
     {
         public void Configure(MessagingClientBuilder builder) => builder
             .AddLocal<AutomationQueryHandler>()

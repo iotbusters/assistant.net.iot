@@ -7,16 +7,16 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.CommandHandlers
+namespace Assistant.Net.Scheduler.Api.Handlers
 {
     internal class AutomationReferencesQueryHandler : IMessageHandler<AutomationReferencesQuery, IEnumerable<AutomationReferenceModel>>
     {
-        private readonly IStorage<Guid, AutomationModel> storage;
+        private readonly IAdminStorage<Guid, AutomationModel> storage;
 
-        public AutomationReferencesQueryHandler(IStorage<Guid, AutomationModel> storage) =>
+        public AutomationReferencesQueryHandler(IAdminStorage<Guid, AutomationModel> storage) =>
             this.storage = storage;
 
         public Task<IEnumerable<AutomationReferenceModel>> Handle(AutomationReferencesQuery command, CancellationToken token) =>
-            storage.GetKeys().Select(x => new AutomationReferenceModel(x)).AsEnumerableAsync();
+            storage.GetKeys(token).Select(x => new AutomationReferenceModel(x)).AsEnumerableAsync();
     }
 }

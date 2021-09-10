@@ -6,7 +6,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.CommandHandlers
+namespace Assistant.Net.Scheduler.Api.Handlers
 {
     internal class AutomationDeleteCommandHandler : IMessageHandler<AutomationDeleteCommand>
     {
@@ -16,6 +16,6 @@ namespace Assistant.Net.Scheduler.Api.CommandHandlers
             this.storage = storage;
 
         public Task Handle(AutomationDeleteCommand command, CancellationToken token) =>
-            storage.TryRemove(command.Id);
+            storage.TryRemove(command.Id, token);
     }
 }

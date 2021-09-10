@@ -6,18 +6,17 @@
     <AssemblyName>assistant.net.scheduler.api</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Nullable>enable</Nullable>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>..\..\..</DockerfileContext>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.diagnostics" Version="0.1.70" />
-    <PackageReference Include="assistant.net.messaging.web.client" Version="0.1.70" />
-    <PackageReference Include="assistant.net.storage" Version="0.1.70" />
+    <PackageReference Include="assistant.net.diagnostics" Version="0.1.72" />
+    <PackageReference Include="assistant.net.messaging.web.client" Version="0.1.72" />
+    <PackageReference Include="assistant.net.storage" Version="0.1.72" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.9" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.14" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Http\" />
   </ItemGroup>
 
   <PropertyGroup>
