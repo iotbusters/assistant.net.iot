@@ -19,6 +19,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
         public MessageHandlerFixtureBuilder AddStorage<TKey, TValue>(TestStorage<TKey,TValue> storage) where TKey : struct
         {
             services.ReplaceSingleton<IStorage<TKey, TValue>>(_ => storage);
+            services.ReplaceSingleton<IAdminStorage<TKey, TValue>>(_ => storage);
             return this;
         }
 

@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Scheduler.Api.Commands;
+﻿using Assistant.Net.Scheduler.Api.Commands;
 using Assistant.Net.Scheduler.Api.Exceptions;
 using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Scheduler.Api.Tests.Fixtures;
@@ -11,9 +10,9 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.Tests
+namespace Assistant.Net.Scheduler.Api.Tests.Handlers
 {
-    public class CommandHandlers
+    public class AutomationHandler
     {
         [Test]
         public async Task Handle_AutomationQuery_returnsAutomation()
@@ -39,8 +38,7 @@ namespace Assistant.Net.Scheduler.Api.Tests
             var command = new AutomationQuery(unknownId);
 
             await fixture.Awaiting(x => x.Handle(command))
-                .Should().ThrowAsync<MessageFailedException>()
-                .WithInnerException<MessageFailedException, NotFoundException>();
+                .Should().ThrowAsync<NotFoundException>();
         }
 
         [Test]
@@ -82,7 +80,7 @@ namespace Assistant.Net.Scheduler.Api.Tests
 
             var value = await storage.GetOrDefault(response);
             value.Should().BeEquivalentTo(
-                new AutomationModel(response, command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id))));
+                new AutomationModel(id, command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id))));
         }
 
         [Test]
@@ -113,8 +111,7 @@ namespace Assistant.Net.Scheduler.Api.Tests
             var command = new AutomationUpdateCommand(unknownId, "another", new[] {new JobReferenceDto(Guid.NewGuid())});
 
             await fixture.Awaiting(x => x.Handle(command))
-                .Should().ThrowAsync<MessageFailedException>()
-                .WithInnerException<MessageFailedException, NotFoundException>();
+                .Should().ThrowAsync<NotFoundException>();
         }
     }
 }
