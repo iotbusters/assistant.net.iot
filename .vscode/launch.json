@@ -10,7 +10,7 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/src/Scheduler/Scheduler.Api/bin/Debug/net5.0/Scheduler.Api.dll",
+            "program": "${workspaceFolder}/src/Scheduler/Scheduler.Api/bin/Debug/net5.0/Scheduler.Api.exe",
             "args": [],
             "cwd": "${workspaceFolder}/src/Scheduler/Scheduler.Api",
             "stopAtEntry": false,
@@ -21,9 +21,6 @@
             },
             "env": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
-            },
-            "sourceFileMap": {
-                "/Views": "${workspaceFolder}/Views"
             }
         },
         {
