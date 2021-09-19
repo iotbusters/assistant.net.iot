@@ -1,0 +1,31 @@
+﻿version: "3.9"
+services:
+
+  scheduler-api:
+    image: assistantnetschedulerapi:latest
+    container_name: scheduler-api
+    environment:
+      - CONNECTIONSTRINGS_STORAGEDATABASE=mongodb://mongo:27017/
+    ports:
+      - 5000:5101
+    depends_on:
+      - mongo
+
+  # scheduler-service:
+  #   image: assistantnetschedulerservice:latest
+  #   ports:
+  #     - "5000:5201"
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    volumes:
+      - mongodb-data:/data
+    ports:
+      - 27017:27017
+    expose:
+      - 27017
+    restart: always
+
+volumes:
+  mongodb-data:
