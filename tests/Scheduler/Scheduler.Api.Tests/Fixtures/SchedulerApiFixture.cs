@@ -1,11 +1,11 @@
-﻿using Assistant.Net.Serialization.Abstractions;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Net.Http.Headers;
 using System;
 using System.IO;
 using System.Net.Http;
 using System.Net.Mime;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Net.Http.Headers;
 using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
@@ -45,13 +45,10 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
             return Client.SendAsync(request);
         }
 
-        public StreamContent Content(object content)
+        public StringContent Content(object content)
         {
-            var stream = new MemoryStream();
-            provider.GetRequiredService<IJsonSerializer>().Serialize(stream, content).Wait();
-            stream.Position = 0;
-
-            return new(stream)
+            var json = JsonSerializer.Serialize(content, content.GetType());
+            return new(json)
             {
                 Headers =
                 {

@@ -12,6 +12,7 @@ namespace Assistant.Net.Scheduler.Api
         /// <summary/>
         public static IHostBuilder CreateHostBuilder(string[] args) => Host
             .CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(b => b.UseStartup<Startup>());
+            .ConfigureWebHostDefaults(b => b.UseStartup<Startup>())
+            .UseConsoleLifetime();
     }
 }

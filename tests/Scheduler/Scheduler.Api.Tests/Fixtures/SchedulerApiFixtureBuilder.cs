@@ -42,7 +42,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
             var provider = new ServiceCollection()
                 .AddSingleton(host)// to dispose all at once
                 .AddSingleton(new HttpClient(host.GetTestServer().CreateHandler()))
-                .AddJsonSerialization()
+                //.AddJsonSerialization()
                 .BuildServiceProvider();
             return new SchedulerApiFixture(provider);
         }

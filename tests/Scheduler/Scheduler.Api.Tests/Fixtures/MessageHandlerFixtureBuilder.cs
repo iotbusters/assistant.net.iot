@@ -1,7 +1,10 @@
-﻿using Assistant.Net.Scheduler.Api.Tests.Mocks;
+﻿using Assistant.Net.Scheduler.Api.Models;
+using Assistant.Net.Scheduler.Api.Tests.Mocks;
+using Assistant.Net.Storage;
 using Assistant.Net.Storage.Abstractions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 {
@@ -14,6 +17,9 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
             services = new ServiceCollection();
             var configuration = new ConfigurationBuilder().Build();
             new Startup(configuration).ConfigureServices(services);
+            services.AddStorage(b => b
+                .AddLocal<Guid, AutomationModel>()
+                .AddLocal<Guid, JobModel>());
         }
 
         public MessageHandlerFixtureBuilder AddStorage<TKey, TValue>(TestStorage<TKey,TValue> storage) where TKey : struct
