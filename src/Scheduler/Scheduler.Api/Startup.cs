@@ -1,7 +1,7 @@
 using Assistant.Net.Messaging;
-using Assistant.Net.Scheduler.Api.Handlers;
 using Assistant.Net.Scheduler.Api.Conventions;
 using Assistant.Net.Scheduler.Api.Extensions;
+using Assistant.Net.Scheduler.Api.Handlers;
 using Assistant.Net.Scheduler.Api.Middlewares;
 using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Storage;
@@ -32,8 +32,9 @@ namespace Assistant.Net.Scheduler.Api
             services
                 .AddDiagnosticContextWebHosted()
                 .AddStorage(b => b
-                    .AddLocal<Guid, AutomationModel>()
-                    .AddLocal<Guid, JobModel>())
+                    .UseMongo(Configuration.GetConnectionString("StorageDatabase"))
+                    .AddMongo<Guid, AutomationModel>()
+                    .AddMongo<Guid, JobModel>())
                 .AddMessagingClient(b => b
                     .ClearInterceptors()
                     .AddConfiguration<LocalCommandHandlersConfiguration>());

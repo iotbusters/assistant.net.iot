@@ -9,6 +9,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{BB1E334D
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{21F28A2A-5078-43E9-8635-F7480E22D33B}"
 	ProjectSection(SolutionItems) = preProject
+		.dockerignore = .dockerignore
+		.editorconfig = .editorconfig
+		.gitignore = .gitignore
 		LICENSE = LICENSE
 		README.md = README.md
 		SECURITY.md = SECURITY.md
@@ -52,6 +55,12 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Device.Inbound.Tests", "tests\Device.Routers\Device.Inbound.Tests\Device.Inbound.Tests.csproj", "{628C8272-C129-447D-B556-2B3E9CC2B3C1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Device.Outbound.Tests", "tests\Device.Routers\Device.Outbound.Tests\Device.Outbound.Tests.csproj", "{D96CBA88-0329-47D1-84D9-878F9741BE26}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local", "local", "{D60C96CF-E6BB-42D6-B96C-520E96359F81}"
+	ProjectSection(SolutionItems) = preProject
+		docker-build.sh = docker-build.sh
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

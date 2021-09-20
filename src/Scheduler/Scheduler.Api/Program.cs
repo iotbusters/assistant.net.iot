@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace Assistant.Net.Scheduler.Api
@@ -8,18 +7,11 @@ namespace Assistant.Net.Scheduler.Api
     public class Program
     {
         /// <summary/>
-        public static void Main(string[] args)
-        {
-            CreateHostBuilder(args).Build().Run();
-        }
+        public static void Main(string[] args) => CreateHostBuilder(args).Build().Run();
 
         /// <summary/>
         public static IHostBuilder CreateHostBuilder(string[] args) => Host
             .CreateDefaultBuilder(args)
-            .ConfigureWebHostDefaults(b => b
-                .ConfigureAppConfiguration((_, cb) => cb
-                    .AddEnvironmentVariables("ASSISTANTNET")
-                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true))
-                .UseStartup<Startup>());
+            .ConfigureWebHostDefaults(b => b.UseStartup<Startup>());
     }
 }

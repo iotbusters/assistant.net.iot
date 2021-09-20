@@ -1,13 +1,16 @@
 ﻿version: "3.9"
 services:
 
-  scheduler-api:
+  schedulerapi:
     image: assistantnetschedulerapi:latest
-    container_name: scheduler-api
+    container_name: schedulerapi
     environment:
-      - CONNECTIONSTRINGS_STORAGEDATABASE=mongodb://mongo:27017/
+      - ConnectionStrings__StorageDatabase=mongodb://mongo:27017/
     ports:
-      - 5000:5101
+      - 5101:80
+    expose:
+      - 5101
+    restart: always
     depends_on:
       - mongo
 
