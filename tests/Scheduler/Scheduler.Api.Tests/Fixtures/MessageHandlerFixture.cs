@@ -9,7 +9,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 {
     public class MessageHandlerFixture : IDisposable
     {
-        private readonly ServiceProvider provider;
+        public readonly ServiceProvider provider;
 
         public MessageHandlerFixture(ServiceProvider provider) =>
             this.provider = provider;

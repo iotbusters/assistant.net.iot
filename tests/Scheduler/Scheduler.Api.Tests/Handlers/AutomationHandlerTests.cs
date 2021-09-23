@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Handlers
 {
-    public class AutomationHandler
+    public class AutomationHandlerTests
     {
         [Test]
         public async Task Handle_AutomationQuery_returnsAutomation()

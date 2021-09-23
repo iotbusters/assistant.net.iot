@@ -13,7 +13,7 @@ namespace Assistant.Net.Scheduler.Api.Middlewares
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            var operation = diagnosticFactory.Start("diagnistic-middleware");
+            var operation = diagnosticFactory.Start("scheduler-api-request");
 
             try
             {

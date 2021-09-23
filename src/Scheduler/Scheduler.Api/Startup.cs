@@ -1,6 +1,5 @@
 using Assistant.Net.Messaging;
 using Assistant.Net.Scheduler.Api.Conventions;
-using Assistant.Net.Scheduler.Api.Extensions;
 using Assistant.Net.Scheduler.Api.Handlers;
 using Assistant.Net.Scheduler.Api.Middlewares;
 using Assistant.Net.Scheduler.Api.Models;
@@ -30,19 +29,19 @@ namespace Assistant.Net.Scheduler.Api
         public void ConfigureServices(IServiceCollection services)
         {
             services
-                .AddDiagnosticContextWebHosted()
                 .AddStorage(b => b
                     .UseMongo(Configuration.GetConnectionString("StorageDatabase"))
                     .AddMongo<Guid, AutomationModel>()
                     .AddMongo<Guid, JobModel>())
-                .AddMessagingClient(b => b
-                    .ClearInterceptors()
-                    .AddConfiguration<LocalCommandHandlersConfiguration>());
+                .AddRemoteWebMessageHandler(b => b.AddConfiguration<LocalCommandHandlersConfiguration>());
 
-            // todo: enrich request details, correlation id, machine name, thread...
-            services.AddLogging();
+            // todo: remove the line once the fix is released.
+            //services.ReplaceSingleton<MessageExceptionJsonConverter>();
 
-            // todo: implement authentication and authorization
+            // todo: configure logging, enrich request details, correlation id, machine name, thread...
+            //services.AddLogging();
+
+            // todo: implement authorization
             //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
                 //.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o => {});
                 //.AddOAuth(JwtBearerDefaults.AuthenticationScheme, o => {});
@@ -65,7 +64,7 @@ namespace Assistant.Net.Scheduler.Api
                 o.IncludeXmlComments(Path.Combine(folderPath, fileName + ".xml"), includeControllerXmlComments: true);
                 // todo: implement https://restfulapi.net/hateoas/
                 //o.DocumentFilter<HateoasDocumentFilter>();
-                // todo: implement authentication and authorization for swagger
+                // todo: implement authorization for swagger
                 //o.AddSecurityDefinition("OAuth2", new OpenApiSecurityScheme { });
                 //o.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme { });
                 //o.AddSecurityRequirement(new OpenApiSecurityRequirement { });
@@ -80,18 +79,20 @@ namespace Assistant.Net.Scheduler.Api
         public void Configure(IApplicationBuilder app) => app
             .UsePathBase("/api")
             .UseRouting()
-            // todo: implement authentication
+            // todo: implement authorization
             //.UseAuthentication()
             //.UseAuthorization()
-            // todo: move middlewares into extensions
             .UseMiddleware<CorrelationMiddleware>()
-            .UseMiddleware<DiagnosticMiddleware>()
             .UseMiddleware<ExceptionHandlingMiddleware>()
-            .UseEndpoints(endpoints => endpoints
-                .MapControllers()
+            .UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                // todo: implement authorization
                 //.RequireAuthorization()
-            )
+            })
             .UseSwagger()
-            .UseSwaggerUI();
+            .UseSwaggerUI()
+            .UseMiddleware<DiagnosticMiddleware>()
+            .UseRemoteWebMessageHandler();
     }
 }
