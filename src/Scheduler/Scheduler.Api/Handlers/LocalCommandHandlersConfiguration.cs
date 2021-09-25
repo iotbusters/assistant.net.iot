@@ -15,6 +15,10 @@ namespace Assistant.Net.Scheduler.Api.Handlers
             .AddLocal<JobQueryHandler>()
             .AddLocal<JobCreateCommandHandler>()
             .AddLocal<JobUpdateCommandHandler>()
-            .AddLocal<JobDeleteCommandHandler>();
+            .AddLocal<JobDeleteCommandHandler>()
+            .AddLocal<RunQueryHandler>()
+            .AddLocal<RunCreateCommandHandler>()
+            .AddLocal<RunUpdateCommandHandler>()
+            .AddLocal<RunDeleteCommandHandler>();
     }
 }

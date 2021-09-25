@@ -5,5 +5,5 @@ docker build . \
     -t assistantnetschedulerapi:latest
 
 #docker build . \
-#    -f src/Scheduler/Scheduler.Service/Dockerfile \
-#    -t assistantnetschedulerservice:latest
+#    -f src/Scheduler/Scheduler.EventHandler/Dockerfile \
+#    -t assistantnetschedulereventhandler:latest

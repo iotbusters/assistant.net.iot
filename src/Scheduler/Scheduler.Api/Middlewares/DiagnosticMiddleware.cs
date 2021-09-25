@@ -13,6 +13,13 @@ namespace Assistant.Net.Scheduler.Api.Middlewares
 
         public async Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
+            // only an /api calls require diagnostic, ignoring swagger endpoints.
+            if (context.Request.Path.StartsWithSegments("/swagger"))
+            {
+                await next(context);
+                return;
+            }
+
             var operation = diagnosticFactory.Start("scheduler-api-request");
 
             try

@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Console.Host": {
+      "commandName": "Project",
+      "dotnetRunMessages": "true",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__StorageDatabase": "mongodb://127.0.0.1:27017",
+        "HttpClient__RemoteMessageHandler__BaseAddress": "http://localhost:5101/api",
+        "HttpClient__RemoteMessageHandler__Timeout": "00:05"
+      }
+    },
+    "Docker.Host": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
+      "publishAllPorts": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__StorageDatabase": "mongodb://127.0.0.1:27017",
+        "HttpClient__RemoteMessageHandler__BaseAddress": "http://localhost:5101/api",
+        "HttpClient__RemoteMessageHandler__Timeout": "00:05"
+      }
+    }
+  }
+}

@@ -1,6 +1,8 @@
 ﻿using Assistant.Net.Messaging;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Scheduler.Api.Models;
+using Assistant.Net.Scheduler.Contracts;
+using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Storage;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;

@@ -42,7 +42,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Device.Outbound", "src\Devi
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduler.Api", "src\Scheduler\Scheduler.Api\Scheduler.Api.csproj", "{87F5856F-7168-4C29-BED7-FB766369782F}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduler.Service", "src\Scheduler\Scheduler.Service\Scheduler.Service.csproj", "{7F705772-C4A2-4A9E-A9D3-297599BB40B6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduler.EventHandler", "src\Scheduler\Scheduler.EventHandler\Scheduler.EventHandler.csproj", "{7F705772-C4A2-4A9E-A9D3-297599BB40B6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Device.Routers", "Device.Routers", "{222BAE35-C5AE-454A-9A35-F30C5360B3B4}"
 EndProject
@@ -50,7 +50,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Scheduler", "Scheduler", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduler.Api.Tests", "tests\Scheduler\Scheduler.Api.Tests\Scheduler.Api.Tests.csproj", "{2B66342C-571E-49EA-876F-14C630F692D1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduler.Service.Tests", "tests\Scheduler\Scheduler.Service.Tests\Scheduler.Service.Tests.csproj", "{DB0B0FBB-0AD3-4569-AA7D-5A5B47D26AE4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduler.EventHandler.Tests", "tests\Scheduler\Scheduler.EventHandler.Tests\Scheduler.EventHandler.Tests.csproj", "{DB0B0FBB-0AD3-4569-AA7D-5A5B47D26AE4}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Device.Inbound.Tests", "tests\Device.Routers\Device.Inbound.Tests\Device.Inbound.Tests.csproj", "{628C8272-C129-447D-B556-2B3E9CC2B3C1}"
 EndProject
@@ -61,6 +61,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "local", "local", "{D60C96CF
 		docker-build.sh = docker-build.sh
 		docker-compose.yml = docker-compose.yml
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduler.Contracts", "src\Scheduler\Scheduler.Contracts\Scheduler.Contracts.csproj", "{C4382005-26DB-46B0-9AF3-9953F6C918FE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -168,6 +170,18 @@ Global
 		{D96CBA88-0329-47D1-84D9-878F9741BE26}.Release|x64.Build.0 = Release|Any CPU
 		{D96CBA88-0329-47D1-84D9-878F9741BE26}.Release|x86.ActiveCfg = Release|Any CPU
 		{D96CBA88-0329-47D1-84D9-878F9741BE26}.Release|x86.Build.0 = Release|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Debug|x64.Build.0 = Debug|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Debug|x86.Build.0 = Debug|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Release|x64.ActiveCfg = Release|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Release|x64.Build.0 = Release|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Release|x86.ActiveCfg = Release|Any CPU
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -186,6 +200,7 @@ Global
 		{DB0B0FBB-0AD3-4569-AA7D-5A5B47D26AE4} = {C8ECCEA8-8F46-48CA-8CF7-E8F11562BE00}
 		{628C8272-C129-447D-B556-2B3E9CC2B3C1} = {222BAE35-C5AE-454A-9A35-F30C5360B3B4}
 		{D96CBA88-0329-47D1-84D9-878F9741BE26} = {222BAE35-C5AE-454A-9A35-F30C5360B3B4}
+		{C4382005-26DB-46B0-9AF3-9953F6C918FE} = {BEC38B8E-D717-46F7-955C-217DA7C70259}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8B20E7EC-96C4-4167-AC67-BCDBF9F37CF4}

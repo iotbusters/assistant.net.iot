@@ -1,5 +1,5 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Scheduler.Api.Enums;
+using Assistant.Net.Scheduler.Contracts.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;

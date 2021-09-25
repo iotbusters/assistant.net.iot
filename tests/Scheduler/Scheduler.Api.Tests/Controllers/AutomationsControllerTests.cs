@@ -1,14 +1,15 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Scheduler.Api.Commands;
-using Assistant.Net.Scheduler.Api.Models;
+using Assistant.Net.Scheduler.Api.Tests.Fixtures;
+using Assistant.Net.Scheduler.Api.Tests.Mocks;
+using Assistant.Net.Scheduler.Contracts.Commands;
+using Assistant.Net.Scheduler.Contracts.Models;
+using Assistant.Net.Scheduler.Contracts.Queries;
 using FluentAssertions;
 using NUnit.Framework;
-using Assistant.Net.Scheduler.Api.Tests.Fixtures;
 using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using Assistant.Net.Scheduler.Api.Tests.Mocks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Controllers
 {

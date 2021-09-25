@@ -1,8 +1,9 @@
-﻿using Assistant.Net.Scheduler.Api.Commands;
-using Assistant.Net.Scheduler.Api.Exceptions;
-using Assistant.Net.Scheduler.Api.Models;
-using Assistant.Net.Scheduler.Api.Tests.Fixtures;
+﻿using Assistant.Net.Scheduler.Api.Tests.Fixtures;
 using Assistant.Net.Scheduler.Api.Tests.Mocks;
+using Assistant.Net.Scheduler.Contracts.Commands;
+using Assistant.Net.Scheduler.Contracts.Exceptions;
+using Assistant.Net.Scheduler.Contracts.Models;
+using Assistant.Net.Scheduler.Contracts.Queries;
 using Assistant.Net.Storage.Abstractions;
 using FluentAssertions;
 using NUnit.Framework;

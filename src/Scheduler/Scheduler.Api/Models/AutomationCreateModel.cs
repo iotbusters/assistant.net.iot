@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Assistant.Net.Scheduler.Contracts.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace Assistant.Net.Scheduler.Api.Models
 {

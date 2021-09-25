@@ -1,7 +1,9 @@
 ﻿using Assistant.Net.Messaging;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Scheduler.Api.Commands;
 using Assistant.Net.Scheduler.Api.Models;
+using Assistant.Net.Scheduler.Contracts.Commands;
+using Assistant.Net.Scheduler.Contracts.Models;
+using Assistant.Net.Scheduler.Contracts.Queries;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -34,7 +36,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         ///     Defines new automation job.
         /// </summary>
         /// <param name="model">Create job details.</param>
-        /// <returns>Location header.</returns>
+        /// <returns>Location header with reference to the new automation job.</returns>
         [HttpPost]
         public Task<Guid> Create(JobCreateModel model) => client.SendAs(
             new JobCreateCommand(model.Name, model.Trigger, model.TriggerEventMask, model.Type, model.Parameters));

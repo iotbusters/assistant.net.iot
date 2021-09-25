@@ -1,8 +1,9 @@
 using Assistant.Net.Messaging;
+using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Scheduler.Api.Conventions;
 using Assistant.Net.Scheduler.Api.Handlers;
 using Assistant.Net.Scheduler.Api.Middlewares;
-using Assistant.Net.Scheduler.Api.Models;
+using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -32,14 +33,14 @@ namespace Assistant.Net.Scheduler.Api
                 .AddStorage(b => b
                     .UseMongo(Configuration.GetConnectionString("StorageDatabase"))
                     .AddMongo<Guid, AutomationModel>()
-                    .AddMongo<Guid, JobModel>())
-                .AddRemoteWebMessageHandler(b => b.AddConfiguration<LocalCommandHandlersConfiguration>());
-
-            // todo: remove the line once the fix is released.
-            //services.ReplaceSingleton<MessageExceptionJsonConverter>();
+                    .AddMongo<Guid, JobModel>()
+                    .AddMongo<Guid, RunModel>())
+                .AddRemoteWebMessageHandler(b => b
+                    .RemoveInterceptor<CachingInterceptor>()
+                    .AddConfiguration<LocalCommandHandlersConfiguration>());
 
             // todo: configure logging, enrich request details, correlation id, machine name, thread...
-            //services.AddLogging();
+            //services.AddLogging(b => b.AddConsole());
 
             // todo: implement authorization
             //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
@@ -71,8 +72,9 @@ namespace Assistant.Net.Scheduler.Api
             });
 
             services.AddTransient<CorrelationMiddleware>();
+            services.AddTransient<LoggingMiddleware>();
             services.AddTransient<DiagnosticMiddleware>();
-            services.AddTransient<ExceptionHandlingMiddleware>();
+            services.AddTransient<ErrorHandlingMiddleware>();
         }
 
         /// <summary/>
@@ -83,7 +85,8 @@ namespace Assistant.Net.Scheduler.Api
             //.UseAuthentication()
             //.UseAuthorization()
             .UseMiddleware<CorrelationMiddleware>()
-            .UseMiddleware<ExceptionHandlingMiddleware>()
+            .UseMiddleware<LoggingMiddleware>()
+            .UseMiddleware<ErrorHandlingMiddleware>()
             .UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();

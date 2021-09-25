@@ -6,7 +6,7 @@
       "dotnetRunMessages": "true",
       "launchBrowser": true,
       "launchUrl": "swagger",
-      "applicationUrl": "http://localhost:5000",
+      "applicationUrl": "http://localhost:5101",
       "environmentVariables": {
         "AspNetCore_Environment": "Development",
         "ConnectionStrings__StorageDatabase": "mongodb://127.0.0.1:27017"
@@ -17,7 +17,7 @@
       "launchBrowser": true,
       "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
       "publishAllPorts": true,
-      "httpPort": 5000,
+      "httpPort": 5101,
       "environmentVariables": {
         "AspNetCore_Urls": "http://+:80",
         "AspNetCore_Environment": "Development",

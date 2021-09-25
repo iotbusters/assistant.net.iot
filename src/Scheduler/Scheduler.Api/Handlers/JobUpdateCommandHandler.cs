@@ -1,7 +1,7 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Scheduler.Api.Commands;
-using Assistant.Net.Scheduler.Api.Exceptions;
-using Assistant.Net.Scheduler.Api.Models;
+using Assistant.Net.Scheduler.Contracts.Commands;
+using Assistant.Net.Scheduler.Contracts.Exceptions;
+using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Storage.Abstractions;
 using System;
 using System.Threading;
@@ -16,14 +16,17 @@ namespace Assistant.Net.Scheduler.Api.Handlers
         public JobUpdateCommandHandler(IStorage<Guid, JobModel> storage) =>
             this.storage = storage;
 
-        public Task Handle(JobUpdateCommand command, CancellationToken token)
-        {
-            var model = new JobModel(command.Id, command.Name, command.Trigger, command.TriggerEventMask, command.Type, command.Parameters);
-            return storage.AddOrUpdate(
-                    model.Id,
-                    addFactory: _ => throw new NotFoundException(),
-                    updateFactory: (_, _) => model,
-                    token);
-        }
+        public async Task Handle(JobUpdateCommand command, CancellationToken token) =>
+            await storage.AddOrUpdate(
+                command.Id,
+                addFactory: _ => throw new NotFoundException(),
+                updateFactory: (_, _) => new JobModel(
+                    command.Id,
+                    command.Name,
+                    command.Trigger,
+                    command.TriggerEventMask,
+                    command.Type,
+                    command.Parameters),
+                token);
     }
 }

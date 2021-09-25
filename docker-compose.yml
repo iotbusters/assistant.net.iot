@@ -14,10 +14,16 @@ services:
     depends_on:
       - mongo
 
-  # scheduler-service:
-  #   image: assistantnetschedulerservice:latest
-  #   ports:
-  #     - "5000:5201"
+  schedulerservice:
+    image: assistantnetschedulerservice:latest
+    container_name: schedulerservice
+    environment:
+      - ConnectionStrings__StorageDatabase=mongodb://mongo:27017/
+      - HttpClient__RemoteMessageHandler__BaseAddress=http://schedulerapi:5101/api
+      - HttpClient__RemoteMessageHandler__Timeout=00:05
+    restart: always
+    depends_on:
+      - mongo
 
   mongo:
     image: mongo

@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Scheduler.Api.Extensions;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
 
@@ -9,11 +8,12 @@ namespace Assistant.Net.Scheduler.Api.Middlewares
     {
         public Task InvokeAsync(HttpContext context, RequestDelegate next)
         {
-            context.Request.Headers.TryAddCorrelationId(() => Guid.NewGuid().ToString());
-
             // only an /api calls require correlation id in response, ignoring swagger endpoints.
-            if (context.Request.Path.StartsWithSegments("/api"))
+            if (!context.Request.Path.StartsWithSegments("/swagger"))
+            {
+                context.Request.Headers.TryAddCorrelationId(() => Guid.NewGuid().ToString());
                 context.Response.Headers.TryAddCorrelationId(() => context.Request.Headers.GetCorrelationId());
+            }
 
             return next(context);
         }
