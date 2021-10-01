@@ -13,7 +13,7 @@
   <ItemGroup>
     <PackageReference Include="assistant.net.diagnostics" Version="0.1.78" />
     <PackageReference Include="assistant.net.messaging" Version="0.1.78" />
-    <PackageReference Include="assistant.net.storage.mongo" Version="0.1.78" />
+    <PackageReference Include="assistant.net.storage.mongo" Version="0.1.88" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.10" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0">
