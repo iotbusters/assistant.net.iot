@@ -1,8 +1,5 @@
 ﻿using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging;
-using Assistant.Net.Scheduler.Api.Models;
-using Assistant.Net.Scheduler.Api.Tests.Mocks;
-using Assistant.Net.Scheduler.Contracts;
 using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Storage;
 using Assistant.Net.Storage.Abstractions;
@@ -12,34 +9,37 @@ using System;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 {
-    public class MessageHandlerFixtureBuilder
+    public class SchedulerLocalHandlerFixtureBuilder
     {
         private readonly ServiceCollection services;
 
-        public MessageHandlerFixtureBuilder()
+        public SchedulerLocalHandlerFixtureBuilder()
         {
             services = new ServiceCollection();
             var configuration = new ConfigurationBuilder().Build();
             new Startup(configuration).ConfigureServices(services);
             services
-                .ConfigureMessageClient(b => b.ClearInterceptors())
+                .ConfigureMessagingClient(b => b.ClearInterceptors())
+                // add correlation context
                 .AddDiagnosticContext(_ => Guid.NewGuid().ToString())
+                // override original provider
                 .AddStorage(b => b
                     .AddLocal<Guid, AutomationModel>()
-                    .AddLocal<Guid, JobModel>());
+                    .AddLocal<Guid, JobModel>()
+                    .AddLocal<Guid, RunModel>());
         }
 
-        public MessageHandlerFixtureBuilder AddStorage<TKey, TValue>(TestStorage<TKey,TValue> storage) where TKey : struct
+        public SchedulerLocalHandlerFixtureBuilder AddStorage<TKey, TValue>(IAdminStorage<TKey,TValue> storage) where TKey : struct
         {
             services.ReplaceSingleton<IStorage<TKey, TValue>>(_ => storage);
-            services.ReplaceSingleton<IAdminStorage<TKey, TValue>>(_ => storage);
+            services.ReplaceSingleton(_ => storage);
             return this;
         }
 
-        public MessageHandlerFixture Build()
+        public SchedulerLocalHandlerFixture Build()
         {
             var provider = services.BuildServiceProvider();
-            return new MessageHandlerFixture(provider);
+            return new SchedulerLocalHandlerFixture(provider);
         }
     }
 }

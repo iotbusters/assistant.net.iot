@@ -7,6 +7,11 @@ namespace Assistant.Net.Scheduler.Contracts.Models
     /// </summary>
     public class RunStatusDto
     {
+        /// <summary>
+        ///     Serialization purpose only.
+        /// </summary>
+        public RunStatusDto() { }
+
         /// <summary/>
         public RunStatusDto(RunStatus status, string? message = null)
         {
@@ -17,11 +22,11 @@ namespace Assistant.Net.Scheduler.Contracts.Models
         /// <summary>
         ///     Status value of the run.
         /// </summary>
-        public RunStatus Value { get; }
+        public RunStatus Value { get; set; }
 
         /// <summary>
         ///     Message describing the status.
         /// </summary>
-        public string? Message { get; }
+        public string? Message { get; set; }
     }
 }

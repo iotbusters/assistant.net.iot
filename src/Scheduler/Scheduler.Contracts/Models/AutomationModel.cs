@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
@@ -11,7 +10,7 @@ namespace Assistant.Net.Scheduler.Contracts.Models
     public class AutomationModel
     {
         /// <summary/>
-        public AutomationModel(Guid id, string name, IEnumerable<AutomationJobReferenceModel> jobs)
+        public AutomationModel(Guid id, string name, AutomationJobReferenceModel[] jobs)
         {
             Id = id;
             Name = name;

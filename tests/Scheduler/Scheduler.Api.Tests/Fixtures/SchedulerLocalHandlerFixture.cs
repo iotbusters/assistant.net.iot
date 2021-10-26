@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 {
-    public class MessageHandlerFixture : IDisposable
+    public class SchedulerLocalHandlerFixture : IDisposable
     {
-        public readonly ServiceProvider provider;
+        private readonly ServiceProvider provider;
 
-        public MessageHandlerFixture(ServiceProvider provider) =>
+        public SchedulerLocalHandlerFixture(ServiceProvider provider) =>
             this.provider = provider;
 
         public async Task<TResponse> Handle<TResponse>(IMessage<TResponse> request)
@@ -19,10 +19,10 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
             var handler = provider.GetService<IMessagingClient>();
             handler.Should().NotBeNull();
 
-            return await handler!.SendAs(request);
+            return await handler!.Send(request);
         }
 
-        public void Dispose() =>
+        public virtual void Dispose() =>
             provider.Dispose();
     }
 }

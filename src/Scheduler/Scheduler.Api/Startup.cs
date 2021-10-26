@@ -4,13 +4,14 @@ using Assistant.Net.Scheduler.Api.Conventions;
 using Assistant.Net.Scheduler.Api.Handlers;
 using Assistant.Net.Scheduler.Api.Middlewares;
 using Assistant.Net.Scheduler.Contracts.Models;
+using Assistant.Net.Serialization;
 using Assistant.Net.Storage;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
-using System.Text.Json.Serialization;
 
 namespace Assistant.Net.Scheduler.Api
 {
@@ -35,9 +36,24 @@ namespace Assistant.Net.Scheduler.Api
                     .AddMongo<Guid, AutomationModel>()
                     .AddMongo<Guid, JobModel>()
                     .AddMongo<Guid, RunModel>())
-                .AddRemoteWebMessageHandler(b => b
+                .AddMongoMessageHandling(b => b
+                    .Use(Configuration.GetConnectionString("RemoteMessageHandler"))
+                    .AddHandler<AutomationQueryHandler>()
+                    .AddHandler<AutomationReferencesQueryHandler>()
+                    .AddHandler<JobQueryHandler>()
+                    .AddHandler<RunQueryHandler>()
+                    .AddHandler<RunCreateCommandHandler>()
+                    .AddHandler<RunUpdateCommandHandler>()
+                    .AddHandler<RunDeleteCommandHandler>())
+                .ConfigureMongoHandlingServerOptions(o => o.DatabaseName = "Scheduler")
+                .ConfigureMessagingClient(b => b
                     .RemoveInterceptor<CachingInterceptor>()
-                    .AddConfiguration<LocalCommandHandlersConfiguration>());
+                    .AddLocalHandler<AutomationCreateCommandHandler>()
+                    .AddLocalHandler<AutomationUpdateCommandHandler>()
+                    .AddLocalHandler<AutomationDeleteCommandHandler>()
+                    .AddLocalHandler<JobCreateCommandHandler>()
+                    .AddLocalHandler<JobUpdateCommandHandler>()
+                    .AddLocalHandler<JobDeleteCommandHandler>());
 
             // todo: configure logging, enrich request details, correlation id, machine name, thread...
             //services.AddLogging(b => b.AddConsole());
@@ -48,14 +64,15 @@ namespace Assistant.Net.Scheduler.Api
                 //.AddOAuth(JwtBearerDefaults.AuthenticationScheme, o => {});
             //services.AddAuthorization();
             services
+                .AddSerializer(b => b.AddJsonType<ProblemDetails>())
                 .AddControllers(options =>
                 {
                     options.Conventions.Add(new ResponseConvention());
                     options.Conventions.Add(new ContentTypeConvention());
                     // todo: implement https://restfulapi.net/hateoas/
                     //options.Conventions.Add(new HateoasConvention());
-                })
-                .AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+                });
+                //.AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
             var location = typeof(Startup).Assembly.Location;
             var folderPath = Path.GetDirectoryName(location)!;
@@ -78,24 +95,27 @@ namespace Assistant.Net.Scheduler.Api
         }
 
         /// <summary/>
-        public void Configure(IApplicationBuilder app) => app
-            .UsePathBase("/api")
-            .UseRouting()
-            // todo: implement authorization
-            //.UseAuthentication()
-            //.UseAuthorization()
-            .UseMiddleware<CorrelationMiddleware>()
-            .UseMiddleware<LoggingMiddleware>()
-            .UseMiddleware<ErrorHandlingMiddleware>()
-            .UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
+        public void Configure(IApplicationBuilder app)
+        {
+            const string baseUrl = "api";
+            app
+                .UsePathBase($"/{baseUrl}")
+                .UseRouting()
                 // todo: implement authorization
-                //.RequireAuthorization()
-            })
-            .UseSwagger()
-            .UseSwaggerUI()
-            .UseMiddleware<DiagnosticMiddleware>()
-            .UseRemoteWebMessageHandler();
+                //.UseAuthentication()
+                //.UseAuthorization()
+                .UseMiddleware<CorrelationMiddleware>()
+                .UseMiddleware<LoggingMiddleware>()
+                .UseMiddleware<ErrorHandlingMiddleware>()
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapControllers();
+                    // todo: implement authorization
+                    //.RequireAuthorization()
+                })
+                .UseSwagger(o => o.PreSerializeFilters.Add((doc, req) => doc.Servers.Add(new() {Url = $"{req.Scheme}://{req.Host}/{baseUrl}"})))
+                .UseSwaggerUI()
+                .UseMiddleware<DiagnosticMiddleware>();
+        }
     }
 }

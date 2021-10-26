@@ -15,10 +15,10 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Handlers
 {
-    public class JobHandlers
+    public class JobLocalHandlerTests
     {
         [Test]
-        public async Task Handle_JobQuery_returnsAutomation()
+        public async Task Handle_JobQuery_returnsJob()
         {
             var job = new JobModel(
                 id: Guid.NewGuid(),
@@ -28,7 +28,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
                 type: JobType.Condition,
                 parameters: new Dictionary<string, string>());
             var storage = new TestStorage<Guid, JobModel> { { job.Id, job } };
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
             var command = new JobQuery(job.Id);
 
             var response = await fixture.Handle(command);
@@ -47,7 +47,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
                 type: JobType.Condition,
                 parameters: new Dictionary<string, string>());
             var storage = new TestStorage<Guid, JobModel> { { job.Id, job } };
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
             var command = new JobQuery(UnknownId);
 
             await fixture.Awaiting(x => x.Handle(command))
@@ -55,10 +55,10 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
         }
         
         [Test]
-        public async Task Handle_JobCreateCommand_createsAutomation()
+        public async Task Handle_JobCreateCommand_createsJob()
         {
             var storage = new TestStorage<Guid, JobModel>();
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
             var command = new JobCreateCommand(
                 name: "name",
                 trigger: JobTriggerType.EventTrigger,
@@ -66,13 +66,9 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
                 type: JobType.Condition,
                 parameters: new Dictionary<string, string>());
 
-            var response = await fixture.Handle(command);
-
-            var ids = await storage.GetKeys().AsEnumerableAsync();
-            var id = ids.FirstOrDefault();
-            id.Should().Be(response);
-
-            var value = await storage.GetOrDefault(response);
+            var id = await fixture.Handle(command);
+            
+            var value = await storage.GetOrDefault(id);
             value.Should().BeEquivalentTo(
                 new JobModel(
                     id,
@@ -84,7 +80,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
         }
 
         [Test]
-        public async Task Handle_JobUpdateCommand_updatesAutomation()
+        public async Task Handle_JobUpdateCommand_updatesJob()
         {
             var job = new JobModel(
                 id: Guid.NewGuid(),
@@ -94,7 +90,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
                 type: JobType.Condition,
                 parameters: new Dictionary<string, string>());
             var storage = new TestStorage<Guid, JobModel> { { job.Id, job } };
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
             var command = new JobUpdateCommand(job.Id,
                 name: "another",
                 trigger: JobTriggerType.TimerTrigger,
@@ -128,7 +124,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
                 type: JobType.Condition,
                 parameters: new Dictionary<string, string>());
             var storage = new TestStorage<Guid, JobModel> { { job.Id, job } };
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
             var command = new JobUpdateCommand(
                 UnknownId,
                 name: "another",

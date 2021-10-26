@@ -9,7 +9,8 @@
       "applicationUrl": "http://localhost:5101",
       "environmentVariables": {
         "AspNetCore_Environment": "Development",
-        "ConnectionStrings__StorageDatabase": "mongodb://127.0.0.1:27017"
+        "ConnectionStrings__StorageDatabase": "mongodb://127.0.0.1:27017",
+        "ConnectionStrings__RemoteMessageHandler": "mongodb://127.0.0.1:27017"
       }
     },
     "Docker.Api": {
@@ -21,7 +22,8 @@
       "environmentVariables": {
         "AspNetCore_Urls": "http://+:80",
         "AspNetCore_Environment": "Development",
-        "ConnectionStrings__StorageDatabase": "mongodb://127.0.0.1:27017"
+        "ConnectionStrings__StorageDatabase": "mongodb://127.0.0.1:27017",
+        "ConnectionStrings__RemoteMessageHandler": "mongodb://127.0.0.1:27017"
       }
     }
   }

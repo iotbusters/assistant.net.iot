@@ -18,7 +18,7 @@ namespace Assistant.Net.Scheduler.Api.Handlers
 
         public async Task<Guid> Handle(AutomationCreateCommand command, CancellationToken token)
         {
-            var model = new AutomationModel(Guid.NewGuid(), command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)));
+            var model = new AutomationModel(Guid.NewGuid(), command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)).ToArray());
             await storage.AddOrGet(model.Id, model, token);
             return model.Id;
         }

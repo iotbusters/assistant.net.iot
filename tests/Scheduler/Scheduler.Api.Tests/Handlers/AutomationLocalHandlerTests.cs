@@ -13,14 +13,14 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Handlers
 {
-    public class AutomationHandlerTests
+    public class AutomationLocalHandlerTests
     {
         [Test]
         public async Task Handle_AutomationQuery_returnsAutomation()
         {
-            var automation = new AutomationModel(Guid.NewGuid(), "name", new[] {new AutomationJobReferenceModel(Guid.NewGuid())});
+            var automation = new AutomationModel(id: Guid.NewGuid(), "name", jobs: new[] {new AutomationJobReferenceModel(id: Guid.NewGuid())});
             var storage = new TestStorage<Guid, AutomationModel> {{automation.Id, automation}};
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
             var command = new AutomationQuery(automation.Id);
 
             var response = await fixture.Handle(command);
@@ -33,9 +33,9 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
         {
             var knownId = Guid.NewGuid();
             var unknownId = Guid.NewGuid();
-            var automation = new AutomationModel(knownId, "name", new[] {new AutomationJobReferenceModel(Guid.NewGuid())});
+            var automation = new AutomationModel(knownId, "name", jobs: new[] {new AutomationJobReferenceModel(id: Guid.NewGuid())});
             var storage = new TestStorage<Guid, AutomationModel> {{knownId, automation}};
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
             var command = new AutomationQuery(unknownId);
 
             await fixture.Awaiting(x => x.Handle(command))
@@ -45,9 +45,9 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
         [Test]
         public async Task Handle_AutomationReferencesQuery_returnsAutomationReference()
         {
-            var automation = new AutomationModel(Guid.NewGuid(), "name", new[] {new AutomationJobReferenceModel(Guid.NewGuid())});
+            var automation = new AutomationModel(id: Guid.NewGuid(), "name", jobs: new[] {new AutomationJobReferenceModel(id: Guid.NewGuid())});
             var storage = new TestStorage<Guid, AutomationModel> {{automation.Id, automation}};
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
             var command = new AutomationReferencesQuery();
 
             var response = await fixture.Handle(command);
@@ -58,7 +58,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
         [Test]
         public async Task Handle_AutomationReferencesQuery_returnsEmpty()
         {
-            using var fixture = new MessageHandlerFixtureBuilder().Build();
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().Build();
             var command = new AutomationReferencesQuery();
 
             var response = await fixture.Handle(command);
@@ -70,27 +70,23 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
         public async Task Handle_AutomationCreateCommand_createsAutomation()
         {
             var storage = new TestStorage<Guid, AutomationModel>();
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
-            var command = new AutomationCreateCommand("name", new[] {new JobReferenceDto(Guid.NewGuid())});
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
+            var command = new AutomationCreateCommand("name", new[] {new JobReferenceDto(id: Guid.NewGuid())});
 
-            var response = await fixture.Handle(command);
+            var id = await fixture.Handle(command);
 
-            var ids = await storage.GetKeys().AsEnumerableAsync();
-            var id = ids.FirstOrDefault();
-            id.Should().Be(response);
-
-            var value = await storage.GetOrDefault(response);
+            var value = await storage.GetOrDefault(id);
             value.Should().BeEquivalentTo(
-                new AutomationModel(id, command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id))));
+                new AutomationModel(id, command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)).ToArray()));
         }
 
         [Test]
         public async Task Handle_AutomationUpdateCommand_updatesAutomation()
         {
-            var automation = new AutomationModel(Guid.NewGuid(), "name", new[] {new AutomationJobReferenceModel(Guid.NewGuid())});
+            var automation = new AutomationModel(id: Guid.NewGuid(), "name", jobs: new[] {new AutomationJobReferenceModel(id: Guid.NewGuid())});
             var storage = new TestStorage<Guid, AutomationModel> {{automation.Id, automation}};
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
-            var command = new AutomationUpdateCommand(automation.Id, "another", new[] {new JobReferenceDto(Guid.NewGuid())});
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
+            var command = new AutomationUpdateCommand(automation.Id, "another", new[] {new JobReferenceDto(id: Guid.NewGuid())});
 
             await fixture.Handle(command);
 
@@ -98,7 +94,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
             var id = ids.FirstOrDefault();
             var value = await storage.GetOrDefault(id);
             value.Should().BeEquivalentTo(
-                new AutomationModel(id, command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id))));
+                new AutomationModel(id, command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)).ToArray()));
         }
 
         [Test]
@@ -106,10 +102,10 @@ namespace Assistant.Net.Scheduler.Api.Tests.Handlers
         {
             var knownId = Guid.NewGuid();
             var unknownId = Guid.NewGuid();
-            var automation = new AutomationModel(knownId, "name", new[] {new AutomationJobReferenceModel(Guid.NewGuid())});
+            var automation = new AutomationModel(knownId, "name", jobs: new[] {new AutomationJobReferenceModel(Guid.NewGuid())});
             var storage = new TestStorage<Guid, AutomationModel> {{knownId, automation}};
-            using var fixture = new MessageHandlerFixtureBuilder().AddStorage(storage).Build();
-            var command = new AutomationUpdateCommand(unknownId, "another", new[] {new JobReferenceDto(Guid.NewGuid())});
+            using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
+            var command = new AutomationUpdateCommand(unknownId, "another", new[] {new JobReferenceDto(id: Guid.NewGuid())});
 
             await fixture.Awaiting(x => x.Handle(command))
                 .Should().ThrowAsync<NotFoundException>();

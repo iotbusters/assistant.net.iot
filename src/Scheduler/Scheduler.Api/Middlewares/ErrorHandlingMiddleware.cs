@@ -35,15 +35,15 @@ namespace Assistant.Net.Scheduler.Api.Middlewares
             {
                 logger.LogDebug(e, "An exception has caught.");
 
-                await serializer.Serialize(context.Response.Body, ResourceNotFoundProblem, lifetime.Stopping);
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
+                await serializer.Serialize(context.Response.Body, ResourceNotFoundProblem, lifetime.Stopping);
             }
             catch (Exception e)
             {
                 logger.LogError(e, "An exception has caught.");
 
-                await serializer.Serialize(context.Response.Body, RequestFailedProblem, lifetime.Stopping);
                 context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await serializer.Serialize(context.Response.Body, RequestFailedProblem, lifetime.Stopping);
             }
         }
 

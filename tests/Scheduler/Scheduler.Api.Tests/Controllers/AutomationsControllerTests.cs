@@ -18,9 +18,9 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         [Test]
         public async Task Get_automations()
         {
-            var automations = new[] {new AutomationReferenceModel(Guid.NewGuid())};
+            var automations = new[] {new AutomationReferenceModel(id: Guid.NewGuid())};
             var handler = new TestMessageHandler<AutomationReferencesQuery, IEnumerable<AutomationReferenceModel>>(_ => automations);
-            using var fixture = new SchedulerApiFixtureBuilder().Add(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
 
             var response = await fixture.Get("http://localhost/api/automations");
 
@@ -35,9 +35,9 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         [Test]
         public async Task Get_automations_id()
         {
-            var automation = new AutomationModel(Guid.NewGuid(), "name", new[] {new AutomationJobReferenceModel(Guid.NewGuid())});
+            var automation = new AutomationModel(id: Guid.NewGuid(), "name", new[] {new AutomationJobReferenceModel(id: Guid.NewGuid())});
             var handler = new TestMessageHandler<AutomationQuery, AutomationModel>(_ => automation);
-            using var fixture = new SchedulerApiFixtureBuilder().Add(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
 
             var response = await fixture.Get($"http://localhost/api/automations/{automation.Id}");
 
@@ -47,6 +47,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
                 RequestMessage = new {RequestUri = new Uri($"http://localhost/api/automations/{automation.Id}")},
                 Content = fixture.Content(automation)
             });
+            handler.Request.Should().BeEquivalentTo(new AutomationQuery(automation.Id));
         }
 
         [Test]
@@ -54,13 +55,10 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         {
             var automationId = Guid.NewGuid();
             var handler = new TestMessageHandler<AutomationCreateCommand, Guid>(_ => automationId);
-            using var fixture = new SchedulerApiFixtureBuilder().Add(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
 
-            var response = await fixture.Post("http://localhost/api/automations", new
-            {
-                Name = "name",
-                Jobs = new[] { new { Id = Guid.NewGuid() } }
-            });
+            var command = new AutomationCreateCommand("name", new[] {new JobReferenceDto(id: Guid.NewGuid())});
+            var response = await fixture.Post("http://localhost/api/automations", command);
 
             response.Should().BeEquivalentTo(new
             {
@@ -69,6 +67,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
                 Headers = new {Location = new Uri($"http://localhost/api/automations/{automationId}")},
                 Content = fixture.CreatedContent()
             });
+            handler.Request.Should().BeEquivalentTo(command);
         }
 
         [Test]
@@ -76,12 +75,13 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         {
             var automationId = Guid.NewGuid();
             var handler = new TestMessageHandler<AutomationUpdateCommand, None>(_ => new None());
-            using var fixture = new SchedulerApiFixtureBuilder().Add(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
 
+            var command = new AutomationUpdateCommand(automationId, "name", new[] {new JobReferenceDto(id: Guid.NewGuid())});
             var response = await fixture.Put($"http://localhost/api/automations/{automationId}", new
             {
-                Name = "name",
-                Jobs = new[] { new { Id = Guid.NewGuid() } }
+                command.Name,
+                command.Jobs
             });
 
             response.Should().BeEquivalentTo(new
@@ -90,6 +90,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
                 RequestMessage = new { RequestUri = new Uri($"http://localhost/api/automations/{automationId}") },
                 Content = fixture.NoContent()
             });
+            handler.Request.Should().BeEquivalentTo(command);
         }
 
         [Test]
@@ -97,7 +98,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         {
             var automationId = Guid.NewGuid();
             var handler = new TestMessageHandler<AutomationDeleteCommand, None>(_ => new None());
-            using var fixture = new SchedulerApiFixtureBuilder().Add(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
 
             var response = await fixture.Delete($"http://localhost/api/automations/{automationId}");
 
@@ -107,6 +108,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
                 RequestMessage = new { RequestUri = new Uri($"http://localhost/api/automations/{automationId}") },
                 Content = fixture.NoContent()
             });
+            handler.Request.Should().BeEquivalentTo(new AutomationDeleteCommand(automationId));
         }
     }
 }

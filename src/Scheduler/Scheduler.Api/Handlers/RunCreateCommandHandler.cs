@@ -27,9 +27,9 @@ namespace Assistant.Net.Scheduler.Api.Handlers
 
         public async Task<Guid> Handle(RunCreateCommand command, CancellationToken token)
         {
-            var automation = await client.SendAs(new AutomationQuery(command.AutomationId));
+            var automation = await client.Send(new AutomationQuery(command.AutomationId), token);
 
-            var jobTasks = automation.Jobs.Select(x => client.SendAs(new JobQuery(x.Id)));
+            var jobTasks = automation.Jobs.Select(x => client.Send(new JobQuery(x.Id), token));
             var jobs = await Task.WhenAll(jobTasks);
 
             var runTasks = jobs.Reverse().Aggregate(new List<RunModel>(jobs.Length), (list, job) =>

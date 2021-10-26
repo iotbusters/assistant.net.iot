@@ -20,9 +20,15 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         public async Task Get_jobs_id()
         {
             var jobId = Guid.NewGuid();
-            var job = new JobModel(jobId, "name", JobTriggerType.None, null, JobType.Nothing, null);
+            var job = new JobModel(
+                id: jobId,
+                name: "name",
+                trigger: JobTriggerType.None,
+                triggerEventMask: null,
+                type: JobType.Nothing,
+                parameters: null);
             var handler = new TestMessageHandler<JobQuery, JobModel>(_ => job);
-            using var fixture = new SchedulerApiFixtureBuilder().Add(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
 
             var response = await fixture.Get($"http://localhost/api/jobs/{jobId}");
 
@@ -32,6 +38,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
                 RequestMessage = new {RequestUri = new Uri($"http://localhost/api/jobs/{jobId}")},
                 Content = fixture.Content(job)
             });
+            handler.Request.Should().BeEquivalentTo(new JobQuery(jobId));
         }
 
         [Test]
@@ -39,19 +46,15 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         {
             var jobId = Guid.NewGuid();
             var handler = new TestMessageHandler<JobCreateCommand, Guid>(_ => jobId);
-            using var fixture = new SchedulerApiFixtureBuilder().Add(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
 
-            var response = await fixture.Post("http://localhost/api/jobs", new
-            {
-                Name = "name",
-                Trigger = JobTriggerType.EventTrigger,
-                TriggerEventMask = new Dictionary<string, string>(),
-                Type = JobType.Event,
-                Parameters = new Dictionary<string, string>()
-            });
-
-            var a = await response.Content.ReadAsStringAsync();
-            var b = await fixture.Content(JobType.Event).ReadAsStringAsync();
+            var command = new JobCreateCommand(
+                name: "name",
+                trigger: JobTriggerType.EventTrigger,
+                triggerEventMask: new Dictionary<string, string>(),
+                type: JobType.Event,
+                parameters: new Dictionary<string, string>());
+            var response = await fixture.Post("http://localhost/api/jobs", command);
 
             response.Should().BeEquivalentTo(new
             {
@@ -60,6 +63,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
                 Headers = new {Location = new Uri($"http://localhost/api/jobs/{jobId}")},
                 Content = fixture.CreatedContent()
             });
+            handler.Request.Should().BeEquivalentTo(command);
         }
 
         [Test]
@@ -67,15 +71,22 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         {
             var jobId = Guid.NewGuid();
             var handler = new TestMessageHandler<JobUpdateCommand, None>(_ => new None());
-            using var fixture = new SchedulerApiFixtureBuilder().Add(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
 
+            var command = new JobUpdateCommand(
+                id: jobId,
+                name: "name",
+                trigger: JobTriggerType.EventTrigger,
+                triggerEventMask: new Dictionary<string, string>(),
+                type: JobType.Event,
+                parameters: new Dictionary<string, string>());
             var response = await fixture.Put($"http://localhost/api/jobs/{jobId}", new
             {
-                Name = "name",
-                Trigger = JobTriggerType.EventTrigger,
-                TriggerEventMask = new Dictionary<string, string>(),
-                Type = JobType.Event,
-                Parameters = new Dictionary<string, string>()
+                command.Name,
+                command.Trigger,
+                command.TriggerEventMask,
+                command.Type,
+                command.Parameters
             });
 
             response.Should().BeEquivalentTo(new
@@ -84,6 +95,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
                 RequestMessage = new { RequestUri = new Uri($"http://localhost/api/jobs/{jobId}") },
                 Content = fixture.NoContent()
             });
+            handler.Request.Should().BeEquivalentTo(command);
         }
 
         [Test]
@@ -91,7 +103,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         {
             var jobId = Guid.NewGuid();
             var handler = new TestMessageHandler<JobDeleteCommand, None>(_ => new None());
-            using var fixture = new SchedulerApiFixtureBuilder().Add(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
 
             var response = await fixture.Delete($"http://localhost/api/jobs/{jobId}");
 
@@ -101,6 +113,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
                 RequestMessage = new { RequestUri = new Uri($"http://localhost/api/jobs/{jobId}") },
                 Content = fixture.NoContent()
             });
+            handler.Request.Should().BeEquivalentTo(new JobDeleteCommand(jobId));
         }
     }
 }

@@ -1,14 +1,10 @@
 ﻿using Assistant.Net.Messaging;
 using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Scheduler.Api.Models;
-using Assistant.Net.Scheduler.Contracts;
-using Assistant.Net.Scheduler.Contracts.Models;
-using Assistant.Net.Storage;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
+using System.Linq;
 using System.Net.Http;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
@@ -17,24 +13,26 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
     {
         public SchedulerApiFixtureBuilder()
         {
-            RemoteHostBuilder = new HostBuilder().ConfigureWebHost(wb => wb
+            RemoteHostBuilder = Host.CreateDefaultBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
                 .UseStartup<Startup>()
-                .ConfigureServices(s => s
-                    .AddStorage(b => b
-                        .AddLocal<Guid, AutomationModel>()
-                        .AddLocal<Guid, JobModel>())
-                    .ConfigureMessageClient(b => b.ClearInterceptors())));
+                .ConfigureServices(s =>
+                {
+                    // disable interceptors
+                    s.ConfigureMessagingClient(b => b.ClearInterceptors());
+
+                    // disable MongoDB event handler
+                    var serviceDescriptor = s.Single(x =>
+                        x.ServiceType == typeof(IHostedService) && x.ImplementationType?.Name == "MessageHandlingService");
+                    s.Remove(serviceDescriptor);
+                }));
         }
 
         public IHostBuilder RemoteHostBuilder { get; init; }
 
-        public SchedulerApiFixtureBuilder Add<TRequest, TResponse>(IMessageHandler<TRequest, TResponse> handler)
-            where TRequest : IMessage<TResponse>
+        public SchedulerApiFixtureBuilder ReplaceMongoHandler(IAbstractHandler handler)
         {
-            RemoteHostBuilder.ConfigureServices(s => s
-                .ConfigureMessageClient(b => b.AddLocal<IMessageHandler<TRequest, TResponse>>())
-                .ReplaceSingleton(_ => handler));
+            RemoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b => b.AddLocalHandler(handler)));
             return this;
         }
 
@@ -42,11 +40,10 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
         {
             var host = RemoteHostBuilder.Start();
             var provider = new ServiceCollection()
-                .AddSingleton(host)// to dispose all at once
                 .AddSingleton(new HttpClient(host.GetTestServer().CreateHandler()))
                 //.AddJsonSerialization()
                 .BuildServiceProvider();
-            return new SchedulerApiFixture(provider);
+            return new SchedulerApiFixture(provider, host);
         }
     }
 }

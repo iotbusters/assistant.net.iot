@@ -19,7 +19,7 @@ namespace Assistant.Net.Scheduler.Api.Handlers
 
         public Task Handle(AutomationUpdateCommand command, CancellationToken token)
         {
-            var model = new AutomationModel(command.Id, command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)));
+            var model = new AutomationModel(command.Id, command.Name, command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)).ToArray());
             return storage.AddOrUpdate(
                     command.Id,
                     addFactory: _ => throw new NotFoundException(),

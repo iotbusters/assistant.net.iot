@@ -7,7 +7,9 @@ FROM mcr.microsoft.com/dotnet/runtime-deps:5.0-alpine AS runtime
 # --------------------------------------------------------------------------------
 FROM build AS restore
 COPY src/Scheduler/Scheduler.Api/Scheduler.Api.csproj /src/Scheduler/Scheduler.Api/
+COPY src/Scheduler/Scheduler.Contracts/Scheduler.Contracts.csproj /src/Scheduler/Scheduler.Contracts/
 RUN dotnet restore /src/Scheduler/Scheduler.Api/Scheduler.Api.csproj -r linux-musl-x64
+RUN dotnet restore /src/Scheduler/Scheduler.Contracts/Scheduler.Contracts.csproj -r linux-musl-x64
 
 # --------------------------------------------------------------------------------
 FROM restore AS publish

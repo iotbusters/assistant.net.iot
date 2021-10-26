@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Scheduler.Contracts.Enums;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Assistant.Net.Scheduler.Contracts.Models
 {
@@ -46,11 +47,13 @@ namespace Assistant.Net.Scheduler.Contracts.Models
         /// <summary>
         ///     Related job snapshot.
         /// </summary>
+        [Required]
         public JobModel JobSnapshot { get; }
 
         /// <summary>
         ///     Latest status of the run.
         /// </summary>
+        [Required]
         public RunStatusDto Status { get; }
 
         /// <summary>

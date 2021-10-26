@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Net.Http.Headers;
 using System;
 using System.IO;
@@ -13,9 +14,13 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
     public class SchedulerApiFixture : IDisposable
     {
         private readonly ServiceProvider provider;
+        private readonly IHost host;
 
-        public SchedulerApiFixture(ServiceProvider provider) =>
+        public SchedulerApiFixture(ServiceProvider provider, IHost host)
+        {
             this.provider = provider;
+            this.host = host;
+        }
 
         public HttpClient Client => provider.GetRequiredService<HttpClient>();
 
@@ -64,6 +69,10 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 
         public StreamContent NoContent() => new(new MemoryStream());
 
-        public virtual void Dispose() => provider.Dispose();
+        public virtual void Dispose()
+        {
+            provider.Dispose();
+            host.Dispose();
+        }
     }
 }
