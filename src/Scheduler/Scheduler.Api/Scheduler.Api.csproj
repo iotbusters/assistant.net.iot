@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.diagnostics" Version="0.1.78" />
+    <PackageReference Include="assistant.net.diagnostics" Version="0.1.93" />
     <PackageReference Include="assistant.net.messaging" Version="0.1.78" />
     <PackageReference Include="assistant.net.storage.mongo" Version="0.1.78" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.10" />
