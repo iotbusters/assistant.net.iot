@@ -1,7 +1,5 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Assistant.Net.Scheduler.Contracts.Commands
 {
@@ -11,10 +9,10 @@ namespace Assistant.Net.Scheduler.Contracts.Commands
     public class AutomationCreateCommand : IMessage<Guid>
     {
         /// <summary/>
-        public AutomationCreateCommand(string name, IEnumerable<JobReferenceDto> jobs)
+        public AutomationCreateCommand(string name, JobReferenceDto[] jobs)
         {
             Name = name;
-            Jobs = jobs.ToArray();
+            Jobs = jobs;
         }
 
         /// <summary>

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Assistant.Net.Scheduler.Contracts.Queries
 {
     /// <summary>
-    ///     Automation references query.
+    ///     Automation run trigger references query.
     /// </summary>
-    public class AutomationReferencesQuery : IMessage<IEnumerable<AutomationReferenceModel>> { }
+    public class TriggerReferencesQuery : IMessage<IEnumerable<TriggerReferenceModel>> { }
 }
