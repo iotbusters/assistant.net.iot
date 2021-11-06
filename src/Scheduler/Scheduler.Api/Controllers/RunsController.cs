@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging;
-using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Models;
@@ -32,7 +31,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         /// <returns>Automation run object.</returns>
         [HttpGet("{id}")]
         public Task<RunModel> Get(Guid id, CancellationToken token) =>
-            client.Send(new RunQuery(id), token);
+            client.Request(new RunQuery(id), token);
 
         /// <summary>
         ///     Defines new automation run sequence from an automation jobs.
@@ -42,7 +41,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         /// <returns>Location header with reference to the first run from the sequence.</returns>
         [HttpPost]
         public Task<Guid> Create(RunCreateModel model, CancellationToken token) =>
-            client.Send(new RunCreateCommand(model.AutomationId), token);
+            client.Request(new RunCreateCommand(model.AutomationId), token);
 
         /// <summary>
         ///     Updates automation run.
@@ -52,7 +51,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         /// <param name="token" />
         [HttpPut("{id}")]
         public Task Update(Guid id, RunUpdateModel model, CancellationToken token) =>
-            client.Send(new RunUpdateCommand(id, model.Status), token);
+            client.Request(new RunUpdateCommand(id, model.Status), token);
 
         /// <summary>
         ///     Deletes automation run cascadly.
@@ -61,6 +60,6 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         /// <param name="token" />
         [HttpDelete("{id}")]
         public Task Delete(Guid id, CancellationToken token) =>
-            client.Send(new RunDeleteCommand(id), token);
+            client.Request(new RunDeleteCommand(id), token);
     }
 }

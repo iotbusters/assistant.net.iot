@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using System;
 using System.IO;
@@ -52,7 +53,8 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 
         public StringContent Content(object content)
         {
-            var json = JsonSerializer.Serialize(content, content.GetType());
+            var options = provider.GetRequiredService<IOptions<JsonSerializerOptions>>().Value;
+            var json = JsonSerializer.Serialize(content, content.GetType(), options);
             return new(json)
             {
                 Headers =

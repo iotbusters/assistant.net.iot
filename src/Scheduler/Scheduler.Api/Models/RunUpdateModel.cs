@@ -7,13 +7,9 @@ namespace Assistant.Net.Scheduler.Api.Models
     /// </summary>
     public class RunUpdateModel
     {
-        /// <summary/>
-        public RunUpdateModel(RunStatusDto status) =>
-            Status = status;
-
         /// <summary>
         ///     Latest status of the run.
         /// </summary>
-        public RunStatusDto Status { get; }
+        public RunStatusDto Status { get; set; } = null!;
     }
 }

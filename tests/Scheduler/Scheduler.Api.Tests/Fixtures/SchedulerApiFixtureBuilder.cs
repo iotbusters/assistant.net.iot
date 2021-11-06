@@ -1,5 +1,5 @@
 ﻿using Assistant.Net.Messaging;
-using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,9 +11,11 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 {
     public class SchedulerApiFixtureBuilder
     {
+        private readonly IHostBuilder remoteHostBuilder;
+
         public SchedulerApiFixtureBuilder()
         {
-            RemoteHostBuilder = Host.CreateDefaultBuilder().ConfigureWebHost(wb => wb
+            remoteHostBuilder = Host.CreateDefaultBuilder().ConfigureWebHost(wb => wb
                 .UseTestServer()
                 .UseStartup<Startup>()
                 .ConfigureServices(s =>
@@ -28,20 +30,18 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
                 }));
         }
 
-        public IHostBuilder RemoteHostBuilder { get; init; }
-
-        public SchedulerApiFixtureBuilder ReplaceMongoHandler(IAbstractHandler handler)
+        public SchedulerApiFixtureBuilder ReplaceApiHandler(object handler)
         {
-            RemoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b => b.AddLocalHandler(handler)));
+            remoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b => b.AddLocalHandler(handler)));
             return this;
         }
 
         public SchedulerApiFixture Build()
         {
-            var host = RemoteHostBuilder.Start();
+            var host = remoteHostBuilder.Start();
             var provider = new ServiceCollection()
                 .AddSingleton(new HttpClient(host.GetTestServer().CreateHandler()))
-                //.AddJsonSerialization()
+                .AddSerializer()
                 .BuildServiceProvider();
             return new SchedulerApiFixture(provider, host);
         }

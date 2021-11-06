@@ -11,7 +11,7 @@ namespace Assistant.Net.Scheduler.Api.Middlewares
 {
     internal class ErrorHandlingMiddleware : IMiddleware
     {
-        private readonly ILogger<ErrorHandlingMiddleware> logger;
+        private readonly ILogger logger;
         private readonly ISerializer<ProblemDetails> serializer;
         private readonly ISystemLifetime lifetime;
 

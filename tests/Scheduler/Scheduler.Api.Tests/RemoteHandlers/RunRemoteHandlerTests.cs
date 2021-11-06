@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging;
-using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Scheduler.Api.Tests.Fixtures;
 using Assistant.Net.Scheduler.Api.Tests.Mocks;
 using Assistant.Net.Scheduler.Contracts.Commands;
@@ -7,15 +6,12 @@ using Assistant.Net.Scheduler.Contracts.Enums;
 using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using FluentAssertions;
-using Microsoft.Extensions.DependencyInjection;
-using MongoDB.Bson;
-using MongoDB.Driver;
 using NUnit.Framework;
 using System;
-using System.Threading;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.Tests.Messaging
+namespace Assistant.Net.Scheduler.Api.Tests.RemoteHandlers
 {
     [Timeout(2000)]
     public class RunRemoteHandlerTests
@@ -23,25 +19,22 @@ namespace Assistant.Net.Scheduler.Api.Tests.Messaging
         [Test]
         public async Task Handle_RunQuery_delegatesQueryAndReturnsRunModel()
         {
-            var runId = Guid.NewGuid();
             var run = new RunModel(
-                id: runId,
+                id: Guid.NewGuid(),
                 nextRunId: Guid.NewGuid(),
                 automationId: Guid.NewGuid(),
-                jobSnapshot: new JobModel(
+                jobSnapshot: new JobTriggerModel(
                     id: Guid.NewGuid(),
                     name: "name",
-                    trigger: JobTriggerType.None,
-                    triggerEventMask: null,
-                    type: JobType.Nothing,
-                    parameters: null));
+                    triggerEventName: "Event",
+                    triggerEventMask: new Dictionary<string, string>()));
             var handler = new TestMessageHandler<RunQuery, RunModel>(run);
             using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-                .UseMongo(ConnectionString, Database)
+                .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
                 .ReplaceMongoHandler(handler)
                 .Build();
 
-            var query = new RunQuery(runId);
+            var query = new RunQuery(run.Id);
             var response = await fixture.Handle(query);
 
             response.Should().BeEquivalentTo(run);
@@ -54,7 +47,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Messaging
             var runId = Guid.NewGuid();
             var handler = new TestMessageHandler<RunCreateCommand, Guid>(response: runId);
             using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-                .UseMongo(ConnectionString, Database)
+                .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
                 .ReplaceMongoHandler(handler)
                 .Build();
 
@@ -70,7 +63,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Messaging
         {
             var handler = new TestMessageHandler<RunUpdateCommand, None>(new None());
             using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-                .UseMongo(ConnectionString, Database)
+                .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
                 .ReplaceMongoHandler(handler)
                 .Build();
 
@@ -85,7 +78,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Messaging
         {
             var handler = new TestMessageHandler<RunDeleteCommand, None>(new None());
             using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-                .UseMongo(ConnectionString, Database)
+                .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
                 .ReplaceMongoHandler(handler)
                 .Build();
 
@@ -94,45 +87,5 @@ namespace Assistant.Net.Scheduler.Api.Tests.Messaging
 
             handler.Request.Should().BeEquivalentTo(command);
         }
-
-        [OneTimeSetUp]
-        public async Task OneTimeSetup()
-        {
-            Provider = new ServiceCollection()
-                .ConfigureMongoOptions(ConnectionString)
-                .AddMongoClientFactory()
-                .BuildServiceProvider();
-
-            string pingContent;
-            var client = Provider.GetRequiredService<IMongoClientFactory>().Create();
-            try
-            {
-                var ping = await client.GetDatabase("db").RunCommandAsync(
-                    (Command<BsonDocument>)"{ping:1}",
-                    ReadPreference.Nearest,
-                    new CancellationTokenSource(200).Token);
-                pingContent = ping.ToString();
-            }
-            catch
-            {
-                pingContent = string.Empty;
-            }
-            if (!pingContent.Contains("ok"))
-                Assert.Ignore($"The tests require mongodb instance at {ConnectionString}.");
-        }
-
-        [OneTimeTearDown]
-        public void OneTimeTearDown() => Provider.Dispose();
-
-        [SetUp, TearDown]
-        public async Task Cleanup()
-        {
-            var client = Provider.GetRequiredService<IMongoClientFactory>().Create();
-            await client.DropDatabaseAsync(Database);
-        }
-
-        private const string ConnectionString = "mongodb://127.0.0.1:27017";
-        private const string Database = "test";
-        public ServiceProvider Provider { get; set; } = default!;
     }
 }

@@ -3,8 +3,9 @@ using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Scheduler.Api.Conventions;
 using Assistant.Net.Scheduler.Api.Handlers;
 using Assistant.Net.Scheduler.Api.Middlewares;
+using Assistant.Net.Scheduler.Contracts.Events;
 using Assistant.Net.Scheduler.Contracts.Models;
-using Assistant.Net.Serialization;
+using Assistant.Net.Serialization.Converters;
 using Assistant.Net.Storage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
+using System.Text.Json.Serialization;
 
 namespace Assistant.Net.Scheduler.Api
 {
@@ -35,25 +37,19 @@ namespace Assistant.Net.Scheduler.Api
                     .UseMongo(Configuration.GetConnectionString("StorageDatabase"))
                     .AddMongo<Guid, AutomationModel>()
                     .AddMongo<Guid, JobModel>()
-                    .AddMongo<Guid, RunModel>())
+                    .AddMongo<Guid, RunModel>()
+                    .AddMongo<Guid, TriggerModel>())
                 .AddMongoMessageHandling(b => b
                     .Use(Configuration.GetConnectionString("RemoteMessageHandler"))
-                    .AddHandler<AutomationQueryHandler>()
-                    .AddHandler<AutomationReferencesQueryHandler>()
-                    .AddHandler<JobQueryHandler>()
-                    .AddHandler<RunQueryHandler>()
-                    .AddHandler<RunCreateCommandHandler>()
-                    .AddHandler<RunUpdateCommandHandler>()
-                    .AddHandler<RunDeleteCommandHandler>())
+                    .AddHandler<RunHandlers>()
+                    .AddHandler<TriggerHandlers>())
                 .ConfigureMongoHandlingServerOptions(o => o.DatabaseName = "Scheduler")
                 .ConfigureMessagingClient(b => b
                     .RemoveInterceptor<CachingInterceptor>()
-                    .AddLocalHandler<AutomationCreateCommandHandler>()
-                    .AddLocalHandler<AutomationUpdateCommandHandler>()
-                    .AddLocalHandler<AutomationDeleteCommandHandler>()
-                    .AddLocalHandler<JobCreateCommandHandler>()
-                    .AddLocalHandler<JobUpdateCommandHandler>()
-                    .AddLocalHandler<JobDeleteCommandHandler>());
+                    .AddLocalHandler<AutomationHandlers>()
+                    .AddLocalHandler<JobHandlers>()
+                    .AddMongo<RunSucceededEvent>()
+                    .AddMongo<RunFailedEvent>());
 
             // todo: configure logging, enrich request details, correlation id, machine name, thread...
             //services.AddLogging(b => b.AddConsole());
@@ -64,15 +60,20 @@ namespace Assistant.Net.Scheduler.Api
                 //.AddOAuth(JwtBearerDefaults.AuthenticationScheme, o => {});
             //services.AddAuthorization();
             services
-                .AddSerializer(b => b.AddJsonType<ProblemDetails>())
-                .AddControllers(options =>
+                // todo: don't use serializer for api response serialization
+                //.AddSerializer(b => b.AddJsonType<ProblemDetails>())
+                .AddControllers(o =>
                 {
-                    options.Conventions.Add(new ResponseConvention());
-                    options.Conventions.Add(new ContentTypeConvention());
+                    o.Conventions.Add(new ResponseConvention());
+                    o.Conventions.Add(new ContentTypeConvention());
                     // todo: implement https://restfulapi.net/hateoas/
                     //options.Conventions.Add(new HateoasConvention());
                 });
-                //.AddJsonOptions(o => o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+            services.Configure<JsonOptions, IServiceProvider>((o, p) =>
+            {
+                o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                o.JsonSerializerOptions.Converters.Add(new AdvancedJsonConverterFactory(p));
+            });
 
             var location = typeof(Startup).Assembly.Location;
             var folderPath = Path.GetDirectoryName(location)!;

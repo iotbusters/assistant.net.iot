@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging;
-using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Messaging.Abstractions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,7 +23,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
             var handler = provider.GetService<IMessagingClient>();
             handler.Should().NotBeNull();
 
-            return await handler!.Send(request);
+            return await handler!.Request(request);
         }
 
         public void Dispose()

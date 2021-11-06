@@ -1,6 +1,4 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Scheduler.Contracts.Enums;
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,7 +7,7 @@ namespace Assistant.Net.Scheduler.Api.Models
     /// <summary>
     ///     Automation job create model.
     /// </summary>
-    public class JobCreateModel : IMessage<Guid>
+    public class JobCreateModel
     {
         /// <summary>
         ///     Name.
@@ -18,23 +16,18 @@ namespace Assistant.Net.Scheduler.Api.Models
         public string Name { get; set; } = null!;
 
         /// <summary>
-        ///     Trigger type.
+        ///     Trigger event name.
         /// </summary>
-        public JobTriggerType Trigger { get; set; }
+        public string? TriggerEventName { get; set; }
 
         /// <summary>
-        ///     Event mask of <see cref="Trigger"/>.
+        ///     Event mask of <see cref="TriggerEventName"/>.
         /// </summary>
         public IDictionary<string, string>? TriggerEventMask { get; set; }
 
         /// <summary>
-        ///     Type.
+        ///     Job action message to request.
         /// </summary>
-        public JobType Type { get; set; }
-
-        /// <summary>
-        ///     Parameters of <see cref="Type"/>.
-        /// </summary>
-        public IDictionary<string, string>? Parameters { get; set; } = null!;
+        public IMessage? Action { get; set; }
     }
 }

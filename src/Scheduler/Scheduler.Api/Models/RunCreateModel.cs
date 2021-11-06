@@ -7,13 +7,9 @@ namespace Assistant.Net.Scheduler.Api.Models
     /// </summary>
     public class RunCreateModel
     {
-        /// <summary/>
-        public RunCreateModel(Guid automationId) =>
-            AutomationId = automationId;
-
         /// <summary>
         ///     Related automation id.
         /// </summary>
-        public Guid AutomationId { get; }
+        public Guid AutomationId { get; set; }
     }
 }

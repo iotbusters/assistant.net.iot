@@ -1,5 +1,4 @@
-﻿using Assistant.Net.Messaging;
-using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Models;
@@ -34,7 +33,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         /// <returns>Automation light preview sequence.</returns>
         [HttpGet]
         public async Task<IEnumerable<AutomationReferenceModel>> Get(CancellationToken token) =>
-            await client.Send(new AutomationReferencesQuery(), token);
+            await client.Request(new AutomationReferencesQuery(), token);
 
         /// <summary>
         ///     Gets specific automation by <paramref name="id"/>.
@@ -44,7 +43,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         /// <returns>Automation object.</returns>
         [HttpGet("{id}")]
         public async Task<AutomationModel> Get(Guid id, CancellationToken token) =>
-            await client.Send(new AutomationQuery(id), token);
+            await client.Request(new AutomationQuery(id), token);
 
         /// <summary>
         ///     Defines new automation.
@@ -54,7 +53,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         /// <returns>Location header with reference to the new  automation.</returns>
         [HttpPost]
         public async Task<Guid> Create(AutomationCreateModel model, CancellationToken token) =>
-            await client.Send(new AutomationCreateCommand(model.Name, model.Jobs.Select(x => new JobReferenceDto(x.Id))), token);
+            await client.Request(new AutomationCreateCommand(model.Name, model.Jobs.Select(x => new JobReferenceDto(x.Id)).ToArray()), token);
 
         /// <summary>
         ///     Updates existing automation by <paramref name="id"/>.
@@ -64,7 +63,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         /// <param name="token" />
         [HttpPut("{id}")]
         public async Task Update(Guid id, AutomationUpdateModel model, CancellationToken token) =>
-            await client.Send(new AutomationUpdateCommand(id, model.Name, model.Jobs.Select(x => new JobReferenceDto(x.Id))), token);
+            await client.Request(new AutomationUpdateCommand(id, model.Name, model.Jobs.Select(x => new JobReferenceDto(x.Id)).ToArray()), token);
 
         /// <summary>
         ///     Deletes existing automation by <paramref name="id"/>.
@@ -73,6 +72,6 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         /// <param name="token" />
         [HttpDelete("{id}")]
         public async Task Delete(Guid id, CancellationToken token) =>
-            await client.Send(new AutomationDeleteCommand(id), token);
+            await client.Request(new AutomationDeleteCommand(id), token);
     }
 }

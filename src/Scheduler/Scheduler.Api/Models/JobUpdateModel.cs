@@ -1,4 +1,4 @@
-﻿using Assistant.Net.Scheduler.Contracts.Enums;
+﻿using Assistant.Net.Messaging.Abstractions;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,45 +9,25 @@ namespace Assistant.Net.Scheduler.Api.Models
     /// </summary>
     public class JobUpdateModel
     {
-        /// <summary/>
-        public JobUpdateModel(
-            string name,
-            JobTriggerType trigger,
-            IDictionary<string, string>? triggerEventMask,
-            JobType type,
-            IDictionary<string, string>? parameters)
-        {
-            Name = name;
-            Trigger = trigger;
-            TriggerEventMask = triggerEventMask;
-            Type = type;
-            Parameters = parameters;
-        }
-
         /// <summary>
         ///     Name.
         /// </summary>
         [Required]
-        public string Name { get; }
+        public string Name { get; set; } = null!;
 
         /// <summary>
-        ///     Trigger type.
+        ///     Event name to trigger.
         /// </summary>
-        public JobTriggerType Trigger { get; }
+        public string? TriggerEventName { get; set; }
 
         /// <summary>
-        ///     Event mask of <see cref="Trigger"/>.
+        ///     Event mask of <see cref="TriggerEventName"/>.
         /// </summary>
-        public IDictionary<string, string>? TriggerEventMask { get; }
+        public IDictionary<string, string>? TriggerEventMask { get; set; }
 
         /// <summary>
-        ///     Type.
+        ///     Job action message to request.
         /// </summary>
-        public JobType Type { get; }
-
-        /// <summary>
-        ///     Parameters of <see cref="Type"/>.
-        /// </summary>
-        public IDictionary<string, string>? Parameters { get; }
+        public IMessage? Action { get; set; }
     }
 }

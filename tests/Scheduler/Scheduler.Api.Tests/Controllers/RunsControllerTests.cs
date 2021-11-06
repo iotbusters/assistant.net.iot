@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Scheduler.Api.Tests.Fixtures;
 using Assistant.Net.Scheduler.Api.Tests.Mocks;
 using Assistant.Net.Scheduler.Contracts.Commands;
@@ -8,6 +9,7 @@ using Assistant.Net.Scheduler.Contracts.Queries;
 using FluentAssertions;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -19,16 +21,14 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         public async Task Get_Runs_id()
         {
             var runId = Guid.NewGuid();
-            var snapshot = new JobModel(
+            var snapshot = new JobTriggerModel(
                 id: Guid.NewGuid(),
                 name: "name",
-                trigger: JobTriggerType.None,
-                triggerEventMask: null,
-                type: JobType.Nothing,
-                parameters: null);
+                triggerEventName: "Event",
+                triggerEventMask: new Dictionary<string, string>());
             var run = new RunModel(runId, nextRunId: Guid.NewGuid(), automationId: Guid.NewGuid(), snapshot);
             var handler = new TestMessageHandler<RunQuery, RunModel>(_ => run);
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
             var response = await fixture.Get($"http://localhost/api/runs/{runId}");
 
@@ -46,10 +46,13 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         {
             var runId = Guid.NewGuid();
             var handler = new TestMessageHandler<RunCreateCommand, Guid>(_ => runId);
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
             var command = new RunCreateCommand(automationId: Guid.NewGuid());
-            var response = await fixture.Post("http://localhost/api/runs", command);
+            var response = await fixture.Post("http://localhost/api/runs", new RunCreateModel
+            {
+                AutomationId = command.AutomationId
+            });
 
             response.Should().BeEquivalentTo(new
             {
@@ -66,10 +69,14 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         {
             var runId = Guid.NewGuid();
             var handler = new TestMessageHandler<RunUpdateCommand, None>(_ => new None());
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
             var command = new RunUpdateCommand(runId, new RunStatusDto(RunStatus.Started, "message"));
-            var response = await fixture.Put($"http://localhost/api/runs/{runId}", command);
+            var response = await fixture.Put($"http://localhost/api/runs/{runId}", new RunUpdateModel
+            {
+                Status = command.Status
+            });
+            var s = await response.Content.ReadAsStringAsync();
 
             response.Should().BeEquivalentTo(new
             {
@@ -85,7 +92,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers
         {
             var runId = Guid.NewGuid();
             var handler = new TestMessageHandler<RunDeleteCommand, None>(_ => new None());
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceMongoHandler(handler).Build();
+            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
             var response = await fixture.Delete($"http://localhost/api/runs/{runId}");
 
