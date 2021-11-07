@@ -12,10 +12,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.diagnostics" Version="0.1.86" />
-    <PackageReference Include="assistant.net.messaging.web.client" Version="0.1.86" />
-    <PackageReference Include="assistant.net.messaging.web.server" Version="0.1.86" />
-    <PackageReference Include="assistant.net.storage.mongo" Version="0.1.86" />
+    <PackageReference Include="assistant.net.diagnostics" Version="0.1.94" />
+    <PackageReference Include="assistant.net.messaging.mongo.client" Version="0.1.94" />
+    <PackageReference Include="assistant.net.messaging.mongo.server" Version="0.1.94" />
+    <PackageReference Include="assistant.net.storage.mongo" Version="0.1.94" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />

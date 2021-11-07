@@ -6,6 +6,7 @@ services:
     container_name: schedulerapi
     environment:
       - ConnectionStrings__StorageDatabase=mongodb://mongo:27017/
+      - ConnectionStrings__RemoteMessageHandler=mongodb://mongo:27017/
     ports:
       - 5101:80
     expose:
@@ -14,13 +15,12 @@ services:
     depends_on:
       - mongo
 
-  schedulerservice:
-    image: assistantnetschedulerservice:latest
-    container_name: schedulerservice
+  schedulereventhandler:
+    image: assistantnetschedulereventhandler:latest
+    container_name: schedulereventhandler
     environment:
       - ConnectionStrings__StorageDatabase=mongodb://mongo:27017/
-      - HttpClient__RemoteMessageHandler__BaseAddress=http://schedulerapi:5101/api
-      - HttpClient__RemoteMessageHandler__Timeout=00:05
+      - ConnectionStrings__RemoteMessageHandler=mongodb://mongo:27017/
     restart: always
     depends_on:
       - mongo

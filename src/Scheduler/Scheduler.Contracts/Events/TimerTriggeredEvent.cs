@@ -8,6 +8,10 @@ namespace Assistant.Net.Scheduler.Contracts.Events
     /// </summary>
     public class TimerTriggeredEvent : IMessage
     {
+        /// <summary/>
+        public TimerTriggeredEvent(Guid runId) =>
+            RunId = runId;
+
         /// <summary>
         ///     Associated run ID.
         /// </summary>
