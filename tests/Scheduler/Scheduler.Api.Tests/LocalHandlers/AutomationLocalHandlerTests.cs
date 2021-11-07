@@ -11,7 +11,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.Tests.Handlers
+namespace Assistant.Net.Scheduler.Api.Tests.LocalHandlers
 {
     public class AutomationLocalHandlerTests
     {
