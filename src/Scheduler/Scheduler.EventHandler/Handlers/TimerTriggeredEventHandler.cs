@@ -16,7 +16,7 @@ namespace Assistant.Net.Scheduler.EventHandler.Handlers
         private readonly IMessagingClient client;
 
         public TimerTriggeredEventHandler(
-            ILogger<RunSucceededEventHandler> logger,
+            ILogger<TimerTriggeredEventHandler> logger,
             IMessagingClient client)
         {
             this.logger = logger;

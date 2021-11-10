@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Hosting;
+using System;
 
 namespace Assistant.Net.Scheduler.EventHandler
 {
@@ -9,9 +10,15 @@ namespace Assistant.Net.Scheduler.EventHandler
         public static void Main(string[] args) => CreateHostBuilder(args).Build().Run();
 
         /// <summary/>
-        public static IHostBuilder CreateHostBuilder(string[] args) => Host
-            .CreateDefaultBuilder(args)
-            .ConfigureServices((ctx, services) => new Startup(ctx.Configuration).ConfigureServices(services))
-            .UseConsoleLifetime();
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            var builder = Host
+                .CreateDefaultBuilder(args)
+                .ConfigureServices((ctx, services) => new Startup(ctx.Configuration).ConfigureServices(services));
+
+            if (!OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS())
+                return builder.UseConsoleLifetime();
+            return builder;
+        }
     }
 }

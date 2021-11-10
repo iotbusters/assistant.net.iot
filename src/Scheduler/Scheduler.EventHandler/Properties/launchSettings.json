@@ -12,7 +12,6 @@
     },
     "Docker.Host": {
       "commandName": "Docker",
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
       "publishAllPorts": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
