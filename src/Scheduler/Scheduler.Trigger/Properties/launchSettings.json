@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Console.Host": {
+      "commandName": "Project",
+      "dotnetRunMessages": "true",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__RemoteMessageHandler": "mongodb://127.0.0.1:27017"
+      }
+    },
+    "Docker.Host": {
+      "commandName": "Docker",
+      "publishAllPorts": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__RemoteMessageHandler": "mongodb://127.0.0.1:27017"
+      }
+    }
+  }
+}

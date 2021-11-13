@@ -43,7 +43,6 @@ namespace Assistant.Net.Scheduler.Api
                     .Use(Configuration.GetConnectionString("RemoteMessageHandler"))
                     .AddHandler<RunHandlers>()
                     .AddHandler<TriggerHandlers>())
-                .ConfigureMongoHandlingServerOptions(o => o.DatabaseName = "Scheduler")
                 .ConfigureMessagingClient(b => b
                     .RemoveInterceptor<CachingInterceptor>()
                     .AddLocalHandler<AutomationHandlers>()

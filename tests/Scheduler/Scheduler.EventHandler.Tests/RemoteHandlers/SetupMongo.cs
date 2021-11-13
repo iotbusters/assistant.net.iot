@@ -16,12 +16,12 @@ namespace Assistant.Net.Scheduler.EventHandler.Tests.RemoteHandlers
         public static async Task SetUp()
         {
             Provider = new ServiceCollection()
-                .ConfigureMongoOptions(ConnectionString)
+                .ConfigureMongoOptions("", o => o.ConnectionString = ConnectionString)
                 .AddMongoClientFactory()
                 .BuildServiceProvider();
 
             string pingContent;
-            var client = Provider.GetRequiredService<IMongoClientFactory>().Create();
+            var client = Provider.GetRequiredService<IMongoClientFactory>().CreateClient("");
             try
             {
                 var ping = await client.GetDatabase("db").RunCommandAsync(

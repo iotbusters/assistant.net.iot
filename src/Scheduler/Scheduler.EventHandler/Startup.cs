@@ -24,8 +24,6 @@ namespace Assistant.Net.Scheduler.EventHandler
                 .AddHandler<TimerTriggeredEventHandler>()
                 .AddHandler<RunSucceededEventHandler>()
                 .AddHandler<RunFailedEventHandler>())
-            .ConfigureMongoHandlingClientOptions(o => o.DatabaseName = "Scheduler")
-            .ConfigureMongoHandlingServerOptions(o => o.DatabaseName = "Scheduler")
             .ConfigureMessagingClient(b => b
                 .AddMongo<AutomationReferencesQuery>()
                 .AddMongo<AutomationQuery>()
