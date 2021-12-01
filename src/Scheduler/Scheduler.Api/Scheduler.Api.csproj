@@ -15,7 +15,7 @@
     <PackageReference Include="assistant.net.diagnostics" Version="0.1.97" />
     <PackageReference Include="assistant.net.messaging.web" Version="0.1.97" />
     <PackageReference Include="assistant.net.messaging.mongo.client" Version="0.1.97" />
-    <PackageReference Include="assistant.net.messaging.mongo.server" Version="0.1.97" />
+    <PackageReference Include="assistant.net.messaging.mongo.server" Version="0.1.98" />
     <PackageReference Include="assistant.net.storage.mongo" Version="0.1.97" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />
