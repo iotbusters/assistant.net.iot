@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.diagnostics" Version="0.1.97" />
+    <PackageReference Include="assistant.net.diagnostics" Version="0.1.98" />
     <PackageReference Include="assistant.net.messaging.mongo.client" Version="0.1.97" />
     <PackageReference Include="assistant.net.messaging.mongo.server" Version="0.1.97" />
     <PackageReference Include="assistant.net.storage.mongo" Version="0.1.97" />
