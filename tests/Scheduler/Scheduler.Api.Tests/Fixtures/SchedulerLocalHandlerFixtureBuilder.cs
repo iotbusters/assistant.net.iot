@@ -38,7 +38,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 
         public SchedulerLocalHandlerFixtureBuilder ReplaceHandler(object handler)
         {
-            services.ConfigureMessagingClient(b => b.AddLocalHandler(handler));
+            services.ConfigureMessagingClient(b => b.AddHandler(handler));
             return this;
         }
 

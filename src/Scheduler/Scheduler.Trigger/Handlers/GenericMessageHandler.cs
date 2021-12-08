@@ -1,14 +1,22 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
+using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Trigger.Handlers
 {
-    internal class GenericMessageHandler<TMessage, TResponse> : IMessageHandler<TMessage, TResponse> where TMessage : IMessage<TResponse>
+    internal class GenericMessageHandler<TMessage> : IMessageHandler<TMessage> where TMessage : IMessage
     {
-        public Task<TResponse> Handle(TMessage message, CancellationToken token)
+        private readonly ILogger<GenericMessageHandler<TMessage>> logger;
+
+        public GenericMessageHandler(ILogger<GenericMessageHandler<TMessage>> logger) =>
+            this.logger = logger;
+
+        public Task Handle(TMessage message, CancellationToken token)
         {
-            throw new System.NotImplementedException();
+            logger.LogInformation("Received {@Message}.");
+
+            return Task.CompletedTask;
         }
     }
 }

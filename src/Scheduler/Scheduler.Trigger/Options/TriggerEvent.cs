@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Assistant.Net.Scheduler.Trigger.Options
@@ -6,6 +7,7 @@ namespace Assistant.Net.Scheduler.Trigger.Options
     /// <summary>
     ///     Listening trigger event details.
     /// </summary>
+    [Obsolete("replaced with TriggerEventSource")]
     public class TriggerEvent
     {
         /// <summary>

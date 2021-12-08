@@ -1,15 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Scheduler.Api.Tests</RootNamespace>
-    <AssemblyName>assistant.net.scheduler.api.tests</AssemblyName>
+    <RootNamespace>Assistant.Net.Scheduler.Trigger.Tests</RootNamespace>
+    <AssemblyName>assistant.net.scheduler.trigger.tests</AssemblyName>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.messaging.mongo.client" Version="0.1.100" />
     <PackageReference Include="coverlet.collector" Version="3.1.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -28,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Scheduler\Scheduler.Api\Scheduler.Api.csproj" />
+    <ProjectReference Include="..\..\..\src\Scheduler\Scheduler.Trigger\Scheduler.Trigger.csproj" />
   </ItemGroup>
 
 </Project>

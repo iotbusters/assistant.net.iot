@@ -40,13 +40,16 @@ namespace Assistant.Net.Scheduler.Api
                     .AddMongo<Guid, RunModel>()
                     .AddMongo<Guid, TriggerModel>())
                 .AddMongoMessageHandling(b => b
-                    .Use(Configuration.GetConnectionString("RemoteMessageHandler"))
+                    .UseMongo(Configuration.GetConnectionString("RemoteMessageHandler"))
                     .AddHandler<RunHandlers>()
                     .AddHandler<TriggerHandlers>())
-                .ConfigureMessagingClient(b => b
+                .AddMessagingClient(b => b
+                    .UseMongo(Configuration.GetConnectionString("RemoteMessageHandler"))
                     .RemoveInterceptor<CachingInterceptor>()
-                    .AddLocalHandler<AutomationHandlers>()
-                    .AddLocalHandler<JobHandlers>()
+                    .AddHandler<AutomationHandlers>()
+                    .AddHandler<JobHandlers>()
+                    .AddHandler<RunHandlers>()
+                    .AddHandler<TriggerHandlers>()
                     .AddMongo<RunSucceededEvent>()
                     .AddMongo<RunFailedEvent>());
 

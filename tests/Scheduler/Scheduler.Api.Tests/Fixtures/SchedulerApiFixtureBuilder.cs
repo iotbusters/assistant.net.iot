@@ -32,7 +32,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 
         public SchedulerApiFixtureBuilder ReplaceApiHandler(object handler)
         {
-            remoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b => b.AddLocalHandler(handler)));
+            remoteHostBuilder.ConfigureServices(s => s.ConfigureMessagingClient(b => b.AddHandler(handler)));
             return this;
         }
 

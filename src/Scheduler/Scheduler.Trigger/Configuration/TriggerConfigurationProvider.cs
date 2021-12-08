@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Trigger.Configuration
 {
+    [Obsolete("replaced with TriggerEventSource")]
     internal class TriggerConfigurationProvider : ConfigurationProvider
     {
         private const string EventTypesSectionName = nameof(TriggerOptions.Events);

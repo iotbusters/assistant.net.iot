@@ -7,6 +7,8 @@ using System;
 
 namespace Assistant.Net.Scheduler.Trigger.Configuration
 {
+
+    [Obsolete("replaced with TriggerEventSource")]
     internal class TriggerConfigurationSource : IConfigurationSource
     {
         private readonly IServiceProvider provider;

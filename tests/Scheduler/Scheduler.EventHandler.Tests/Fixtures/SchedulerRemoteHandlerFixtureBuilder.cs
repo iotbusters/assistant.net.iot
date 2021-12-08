@@ -20,8 +20,7 @@ namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures
                 .AddMessagingClient(b => b
                     .TimeoutIn(TimeSpan.FromSeconds(0.5))
                     .RemoveInterceptor<CachingInterceptor>()
-                    .RemoveInterceptor<RetryingInterceptor>()
-                )
+                    .RemoveInterceptor<RetryingInterceptor>())
                 .ConfigureMongoHandlingClientOptions(o => o.ResponsePoll = new ConstantBackoff
                 {
                     Interval = TimeSpan.FromSeconds(0.03),
@@ -30,7 +29,7 @@ namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures
             remoteHostBuilder = Host.CreateDefaultBuilder()
                 .ConfigureServices((ctx, s) => new Startup(ctx.Configuration).ConfigureServices(s))
                 .ConfigureServices(s => s
-                    .ConfigureMessagingClient(b => b
+                    .AddMongoMessageHandling(b => b
                         .RemoveInterceptor<CachingInterceptor>()
                         .RemoveInterceptor<RetryingInterceptor>())
                     .ConfigureMongoHandlingServerOptions(o =>
@@ -42,15 +41,14 @@ namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures
 
         public SchedulerRemoteHandlerFixtureBuilder UseMongo(string connectionString, string database)
         {
-            services
-                .ConfigureMessagingClient(b => b.UseMongo(o =>
-                {
-                    o.ConnectionString = connectionString;
-                    o.DatabaseName = database;
-                }));
+            services.ConfigureMessagingClient(b => b.UseMongo(o =>
+            {
+                o.ConnectionString = connectionString;
+                o.DatabaseName = database;
+            }));
             remoteHostBuilder.ConfigureServices(s => s
                 .AddStorage(b => b.UseMongo(o => o.ConnectionString = connectionString)) // not used but dependent
-                .ConfigureMessagingClient(b => b.UseMongo(o =>
+                .AddMongoMessageHandling(b => b.UseMongo(o =>
                 {
                     o.ConnectionString = connectionString;
                     o.DatabaseName = database;
@@ -60,11 +58,10 @@ namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures
 
         public SchedulerRemoteHandlerFixtureBuilder ReplaceMongoHandler(object handler)
         {
-            remoteHostBuilder.ConfigureServices(s => s.AddMongoMessageHandling(b => b.AddHandler(handler)));
-
             var messageType = handler.GetType().GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
                               ?? throw new ArgumentException("Invalid message handler type.", nameof(handler));
             services.ConfigureMessagingClient(b => b.AddMongo(messageType));
+            remoteHostBuilder.ConfigureServices(s => s.AddMongoMessageHandling(b => b.AddHandler(handler)));
             return this;
         }
 

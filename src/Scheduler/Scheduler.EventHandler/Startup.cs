@@ -20,11 +20,14 @@ namespace Assistant.Net.Scheduler.EventHandler
         /// <summary/>
         public void ConfigureServices(IServiceCollection services) => services
             .AddMongoMessageHandling(b => b
-                .Use(Configuration.GetConnectionString("RemoteMessageHandling"))
+                .UseMongo(Configuration.GetConnectionString("RemoteMessageHandling"))
                 .AddHandler<TimerTriggeredEventHandler>()
                 .AddHandler<RunSucceededEventHandler>()
                 .AddHandler<RunFailedEventHandler>())
-            .ConfigureMessagingClient(b => b
+            .AddMessagingClient(b => b
+                .AddHandler<TimerTriggeredEventHandler>()
+                .AddHandler<RunSucceededEventHandler>()
+                .AddHandler<RunFailedEventHandler>()
                 .AddMongo<AutomationReferencesQuery>()
                 .AddMongo<AutomationQuery>()
                 .AddMongo<JobQuery>()

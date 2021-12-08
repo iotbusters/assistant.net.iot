@@ -1,10 +1,13 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System;
 
 namespace Assistant.Net.Scheduler.Trigger.Configuration
 {
     /// <summary>
     ///     Configuration builder extension methods for trigger scheduler.
     /// </summary>
+
+    [Obsolete("replaced with TriggerEventSource")]
     public static class ConfigurationBuilderExtensions
     {
         /// <summary>

@@ -20,18 +20,16 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
                 .AddMessagingClient(b => b
                     .TimeoutIn(TimeSpan.FromSeconds(0.5))
                     .RemoveInterceptor<CachingInterceptor>()
-                    .RemoveInterceptor<RetryingInterceptor>()
-                )
+                    .RemoveInterceptor<RetryingInterceptor>())
                 .ConfigureMongoHandlingClientOptions(o => o.ResponsePoll = new ConstantBackoff
                 {
                     Interval = TimeSpan.FromSeconds(0.03),
                     MaxAttemptNumber = 5
-                })
-                ;
+                });
             remoteHostBuilder = Host.CreateDefaultBuilder()
                 .ConfigureServices((ctx, s) => new Startup(ctx.Configuration).ConfigureServices(s))
                 .ConfigureServices(s => s
-                    .ConfigureMessagingClient(b => b
+                    .AddMongoMessageHandling(b => b
                         .RemoveInterceptor<CachingInterceptor>()
                         .RemoveInterceptor<RetryingInterceptor>())
                     .ConfigureMongoHandlingServerOptions(o =>
@@ -43,15 +41,14 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 
         public SchedulerRemoteHandlerFixtureBuilder UseMongo(string connectionString, string database)
         {
-            services
-                .ConfigureMessagingClient(b => b.UseMongo(o =>
-                {
-                    o.ConnectionString = connectionString;
-                    o.DatabaseName = database;
-                }));
+            services.ConfigureMessagingClient(b => b.UseMongo(o =>
+            {
+                o.ConnectionString = connectionString;
+                o.DatabaseName = database;
+            }));
             remoteHostBuilder.ConfigureServices(s => s
                 .AddStorage(b => b.UseMongo(o => o.ConnectionString = connectionString)) // not used but dependent
-                .ConfigureMessagingClient(b => b.UseMongo(o =>
+                .AddMongoMessageHandling(b => b.UseMongo(o =>
                 {
                     o.ConnectionString = connectionString;
                     o.DatabaseName = database;

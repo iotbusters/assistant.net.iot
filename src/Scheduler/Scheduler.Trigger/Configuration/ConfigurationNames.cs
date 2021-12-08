@@ -1,4 +1,6 @@
-﻿namespace Assistant.Net.Scheduler.Trigger.Configuration
+﻿using System;
+
+namespace Assistant.Net.Scheduler.Trigger.Configuration
 {
     /// <summary>
     ///     Configuration names.
@@ -8,6 +10,7 @@
         /// <summary>
         ///     Trigger section name.
         /// </summary>
+        [Obsolete("replaced with TriggerEventSource")]
         public const string TriggerSectionName = "Trigger";
 
         /// <summary>
