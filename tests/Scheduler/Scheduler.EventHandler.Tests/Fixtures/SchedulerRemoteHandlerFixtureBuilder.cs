@@ -41,18 +41,11 @@ namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures
 
         public SchedulerRemoteHandlerFixtureBuilder UseMongo(string connectionString, string database)
         {
-            services.ConfigureMessagingClient(b => b.UseMongo(o =>
-            {
-                o.ConnectionString = connectionString;
-                o.DatabaseName = database;
-            }));
+            services
+                .ConfigureMessagingClient(b => b.UseMongo(o => o.Connection(connectionString).Database(database)));
             remoteHostBuilder.ConfigureServices(s => s
-                .AddStorage(b => b.UseMongo(o => o.ConnectionString = connectionString)) // not used but dependent
-                .AddMongoMessageHandling(b => b.UseMongo(o =>
-                {
-                    o.ConnectionString = connectionString;
-                    o.DatabaseName = database;
-                })));
+                .AddStorage(b => b.UseMongo(o => o.Connection(connectionString))) // not used but dependent
+                .ConfigureMongoMessageHandling(b => b.UseMongo(o => o.Connection(connectionString).Database(database))));
             return this;
         }
 

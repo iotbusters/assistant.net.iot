@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Messaging;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using Assistant.Net.Scheduler.EventHandler.Handlers;
@@ -20,7 +21,7 @@ namespace Assistant.Net.Scheduler.EventHandler
         /// <summary/>
         public void ConfigureServices(IServiceCollection services) => services
             .AddMongoMessageHandling(b => b
-                .UseMongo(Configuration.GetConnectionString("RemoteMessageHandling"))
+                .UseMongo(ConfigureMongo)
                 .AddHandler<TimerTriggeredEventHandler>()
                 .AddHandler<RunSucceededEventHandler>()
                 .AddHandler<RunFailedEventHandler>())
@@ -28,6 +29,7 @@ namespace Assistant.Net.Scheduler.EventHandler
                 .AddHandler<TimerTriggeredEventHandler>()
                 .AddHandler<RunSucceededEventHandler>()
                 .AddHandler<RunFailedEventHandler>()
+                .UseMongo(ConfigureMongo)
                 .AddMongo<AutomationReferencesQuery>()
                 .AddMongo<AutomationQuery>()
                 .AddMongo<JobQuery>()
@@ -35,5 +37,8 @@ namespace Assistant.Net.Scheduler.EventHandler
                 .AddMongo<RunCreateCommand>()
                 .AddMongo<RunUpdateCommand>()
                 .AddMongo<RunDeleteCommand>());
+
+        private void ConfigureMongo(MongoOptions options) => options
+            .Connection(Configuration.GetConnectionString("RemoteMessageHandler")).Database("Scheduler");
     }
 }

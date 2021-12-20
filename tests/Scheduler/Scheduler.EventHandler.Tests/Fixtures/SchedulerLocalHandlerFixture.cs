@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
+namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures
 {
     public class SchedulerLocalHandlerFixture : IDisposable
     {

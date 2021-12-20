@@ -41,24 +41,17 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
 
         public SchedulerRemoteHandlerFixtureBuilder UseMongo(string connectionString, string database)
         {
-            services.ConfigureMessagingClient(b => b.UseMongo(o =>
-            {
-                o.ConnectionString = connectionString;
-                o.DatabaseName = database;
-            }));
+            services
+                .ConfigureMessagingClient(b => b.UseMongo(o => o.Connection(connectionString).Database(database)));
             remoteHostBuilder.ConfigureServices(s => s
-                .AddStorage(b => b.UseMongo(o => o.ConnectionString = connectionString)) // not used but dependent
-                .AddMongoMessageHandling(b => b.UseMongo(o =>
-                {
-                    o.ConnectionString = connectionString;
-                    o.DatabaseName = database;
-                })));
+                .AddStorage(b => b.UseMongo(o => o.Connection(connectionString))) // not used but dependent
+                .ConfigureMongoMessageHandling(b => b.UseMongo(o => o.Connection(connectionString).Database(database))));
             return this;
         }
 
         public SchedulerRemoteHandlerFixtureBuilder ReplaceMongoHandler(object handler)
         {
-            remoteHostBuilder.ConfigureServices(s => s.AddMongoMessageHandling(b => b.AddHandler(handler)));
+            remoteHostBuilder.ConfigureServices(s => s.ConfigureMongoMessageHandling(b => b.AddHandler(handler)));
 
             var messageType = handler.GetType().GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
                               ?? throw new ArgumentException("Invalid message handler type.", nameof(handler));

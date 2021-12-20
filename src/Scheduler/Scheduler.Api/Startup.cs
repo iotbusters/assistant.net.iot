@@ -1,5 +1,6 @@
 using Assistant.Net.Messaging;
 using Assistant.Net.Messaging.Interceptors;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Scheduler.Api.Conventions;
 using Assistant.Net.Scheduler.Api.Handlers;
 using Assistant.Net.Scheduler.Api.Middlewares;
@@ -40,16 +41,19 @@ namespace Assistant.Net.Scheduler.Api
                     .AddMongo<Guid, RunModel>()
                     .AddMongo<Guid, TriggerModel>())
                 .AddMongoMessageHandling(b => b
-                    .UseMongo(Configuration.GetConnectionString("RemoteMessageHandler"))
+                    .UseMongo(ConfigureMongo)
+                    .RemoveInterceptor<CachingInterceptor>()
+                    .AddHandler<AutomationHandlers>()
+                    .AddHandler<JobHandlers>()
                     .AddHandler<RunHandlers>()
                     .AddHandler<TriggerHandlers>())
                 .AddMessagingClient(b => b
-                    .UseMongo(Configuration.GetConnectionString("RemoteMessageHandler"))
                     .RemoveInterceptor<CachingInterceptor>()
                     .AddHandler<AutomationHandlers>()
                     .AddHandler<JobHandlers>()
                     .AddHandler<RunHandlers>()
                     .AddHandler<TriggerHandlers>()
+                    .UseMongo(ConfigureMongo)
                     .AddMongo<RunSucceededEvent>()
                     .AddMongo<RunFailedEvent>());
 
@@ -120,5 +124,8 @@ namespace Assistant.Net.Scheduler.Api
                 .UseSwaggerUI()
                 .UseMiddleware<DiagnosticMiddleware>();
         }
+
+        private void ConfigureMongo(MongoOptions options) => options
+            .Connection(Configuration.GetConnectionString("RemoteMessageHandler")).Database("Scheduler");
     }
 }

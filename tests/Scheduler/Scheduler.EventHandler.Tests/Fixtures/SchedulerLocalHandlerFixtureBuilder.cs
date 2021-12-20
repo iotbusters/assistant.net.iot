@@ -1,6 +1,6 @@
 ﻿using Assistant.Net.Diagnostics;
 using Assistant.Net.Messaging;
-using Assistant.Net.Scheduler.Api.Tests.Fixtures;
+using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Storage;
 using Assistant.Net.Storage.Abstractions;
@@ -20,7 +20,9 @@ namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures
             var configuration = new ConfigurationBuilder().Build();
             new Startup(configuration).ConfigureServices(services);
             services
-                .ConfigureMessagingClient(b => b.ClearInterceptors())
+                .ConfigureMessagingClient(b => b
+                    .RemoveInterceptor<CachingInterceptor>()
+                    .RemoveInterceptor<RetryingInterceptor>())
                 // add correlation context
                 .AddDiagnosticContext(_ => Guid.NewGuid().ToString())
                 // override original provider

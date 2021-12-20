@@ -16,7 +16,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.RemoteHandlers
         public static async Task SetUp()
         {
             Provider = new ServiceCollection()
-                .ConfigureMongoOptions("", o => o.ConnectionString = ConnectionString)
+                .ConfigureMongoOptions("", o => o.Connection(ConnectionString))
                 .AddMongoClientFactory()
                 .BuildServiceProvider();
 

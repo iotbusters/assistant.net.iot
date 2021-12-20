@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Options;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

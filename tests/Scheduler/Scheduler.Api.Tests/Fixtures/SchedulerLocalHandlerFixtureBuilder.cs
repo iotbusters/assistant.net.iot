@@ -42,7 +42,6 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
             return this;
         }
 
-
         public SchedulerLocalHandlerFixture Build()
         {
             var provider = services.BuildServiceProvider();
