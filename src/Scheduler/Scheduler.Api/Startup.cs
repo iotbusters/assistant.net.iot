@@ -35,7 +35,7 @@ namespace Assistant.Net.Scheduler.Api
         {
             services
                 .AddStorage(b => b
-                    .UseMongo(Configuration.GetConnectionString("StorageDatabase"))
+                    .UseMongo(Configuration.GetConnectionString(Contracts.ConfigurationNames.Database))
                     .AddMongo<Guid, AutomationModel>()
                     .AddMongo<Guid, JobModel>()
                     .AddMongo<Guid, RunModel>()
@@ -126,6 +126,7 @@ namespace Assistant.Net.Scheduler.Api
         }
 
         private void ConfigureMongo(MongoOptions options) => options
-            .Connection(Configuration.GetConnectionString("RemoteMessageHandler")).Database("Scheduler");
+            .Connection(Configuration.GetConnectionString(Contracts.ConfigurationNames.Messaging))
+            .Database(Contracts.MongoNames.DatabaseName);
     }
 }

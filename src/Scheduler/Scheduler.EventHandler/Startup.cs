@@ -39,6 +39,7 @@ namespace Assistant.Net.Scheduler.EventHandler
                 .AddMongo<RunDeleteCommand>());
 
         private void ConfigureMongo(MongoOptions options) => options
-            .Connection(Configuration.GetConnectionString("RemoteMessageHandler")).Database("Scheduler");
+            .Connection(Configuration.GetConnectionString(Contracts.ConfigurationNames.Messaging))
+            .Database(Contracts.MongoNames.DatabaseName);
     }
 }

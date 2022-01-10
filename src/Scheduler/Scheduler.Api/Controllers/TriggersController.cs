@@ -3,7 +3,6 @@ using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,7 +28,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers
         /// <param name="token" />
         /// <returns>Trigger light preview sequence.</returns>
         [HttpGet]
-        public Task<IEnumerable<TriggerReferenceModel>> Get(CancellationToken token) =>
+        public Task<TriggerReferenceModel[]> Get(CancellationToken token) =>
             client.Request(new TriggerReferencesQuery(), token);
 
         /// <summary>

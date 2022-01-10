@@ -1,8 +1,12 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Options;
+using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
+using Assistant.Net.Scheduler.Trigger.Options;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,28 +17,36 @@ namespace Assistant.Net.Scheduler.Trigger.Internal
 {
     internal class TriggerPollingService : BackgroundService
     {
-        private readonly TimeSpan pollingDelayTime = TimeSpan.FromMinutes(5);
         private readonly HashSet<Guid> unsupportedRunId = new();
         private Dictionary<Guid, Type> events = new();
 
         private readonly ILogger logger;
+        private readonly IOptionsMonitor<TriggerPollingOptions> options;
         private readonly ReloadableOptionsSource eventSource;
         private readonly IMessagingClient client;
         private readonly ISystemLifetime lifetime;
+        private readonly IOptionsMonitor<MongoHandlingOptions> optHandling;
+        private readonly IOptionsMonitor<MessagingClientOptions> optClient;
         private readonly ITypeEncoder typeEncoder;
 
         public TriggerPollingService(
             ILogger<TriggerPollingService> logger,
+            IOptionsMonitor<TriggerPollingOptions> options,
             ReloadableOptionsSource eventSource,
             ITypeEncoder typeEncoder,
             IMessagingClient client,
-            ISystemLifetime lifetime)
+            ISystemLifetime lifetime,
+            IOptionsMonitor<MongoHandlingOptions> optHandling,
+            IOptionsMonitor<MessagingClientOptions> optClient)
         {
             this.logger = logger;
+            this.options = options;
             this.eventSource = eventSource;
             this.typeEncoder = typeEncoder;
             this.client = client;
             this.lifetime = lifetime;
+            this.optHandling = optHandling;
+            this.optClient = optClient;
         }
 
         protected override async Task ExecuteAsync(CancellationToken token)
@@ -44,7 +56,7 @@ namespace Assistant.Net.Scheduler.Trigger.Internal
             while (!lifetime.Stopping.IsCancellationRequested)
             {
                 await ReloadAsync(lifetime.Stopping);
-                await Task.Delay(pollingDelayTime, lifetime.Stopping);
+                await Task.Delay(options.CurrentValue.PollingWait, lifetime.Stopping);
             }
 
             logger.LogInformation("Stop polling triggers resource.");
@@ -54,7 +66,7 @@ namespace Assistant.Net.Scheduler.Trigger.Internal
         {
             logger.LogDebug("Reloading supported trigger events to handle.");
 
-            var timeoutToken = new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token;
+            var timeoutToken = new CancellationTokenSource(options.CurrentValue.PollingTimeout).Token;
             var token = CancellationTokenSource.CreateLinkedTokenSource(systemToken, timeoutToken).Token;
 
             var references = await client.Request(new TriggerReferencesQuery(), token);
@@ -64,7 +76,7 @@ namespace Assistant.Net.Scheduler.Trigger.Internal
             if (runIds.SequenceEqual(currentEvents.Keys))
                 return;
 
-            var triggerQueryTasks = runIds.Except(currentEvents.Keys).Select(x => client.Request(new TriggerQuery(x), token));
+            var triggerQueryTasks = runIds.Except(currentEvents.Keys).Select(x => client.Request(new TriggerQuery(x), token)).ToArray();
             var triggers = await Task.WhenAll(triggerQueryTasks);
 
             var newEvents = triggers
@@ -91,6 +103,9 @@ namespace Assistant.Net.Scheduler.Trigger.Internal
                     select (id, type))
                 .ToDictionary(x => x.id, x => x.type!);
             eventSource.Reload(events.Values);
+
+            //var value2 = optHandling.CurrentValue;
+            //var client2 = optClient.Get(MongoOptionsNames.DefaultName);
 
             logger.LogDebug("Reloaded supported trigger events to handle.");
         }

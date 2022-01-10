@@ -1,6 +1,4 @@
-﻿using Assistant.Net.Scheduler.Trigger.Configuration;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using System;
 
 namespace Assistant.Net.Scheduler.Trigger
@@ -16,9 +14,6 @@ namespace Assistant.Net.Scheduler.Trigger
         {
             var builder = Host
                 .CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration(b => b.AddTrigger(
-                    b.Build().GetConnectionString(ConfigurationNames.Messaging),
-                    Startup.MessagingDatabaseName))
                 .ConfigureServices((ctx, services) => new Startup(ctx.Configuration).ConfigureServices(services));
 
             if (!OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS())

@@ -14,7 +14,7 @@ namespace Assistant.Net.Scheduler.Trigger.Handlers
 
         public Task Handle(TMessage message, CancellationToken token)
         {
-            logger.LogInformation("Received {@Message}.");
+            logger.LogInformation("Received {@Message}.", message);
 
             return Task.CompletedTask;
         }

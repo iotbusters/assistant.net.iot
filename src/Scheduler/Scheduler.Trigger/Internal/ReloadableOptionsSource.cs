@@ -2,7 +2,7 @@
 using Assistant.Net.Messaging;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Scheduler.Trigger.Handlers;
+using Assistant.Net.Scheduler.Trigger.Abstractions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -13,9 +13,15 @@ namespace Assistant.Net.Scheduler.Trigger.Internal
     internal class ReloadableOptionsSource : ConfigureOptionsSourceBase<MessagingClientOptions>
     {
         private readonly ILogger<Startup> logger;
-        
-        public ReloadableOptionsSource(ILogger<Startup> logger) =>
+        private readonly IMessageHandlerFactory factory;
+
+        public ReloadableOptionsSource(
+            ILogger<Startup> logger,
+            IMessageHandlerFactory factory)
+        {
             this.logger = logger;
+            this.factory = factory;
+        }
 
         public HashSet<Type> MessageTypes { get; private set; } = new();
 
@@ -24,8 +30,8 @@ namespace Assistant.Net.Scheduler.Trigger.Internal
             options.Handlers.Clear();
             foreach (var messageType in MessageTypes)
             {
-                var handlerType = typeof(GenericMessageHandler<>).MakeGenericType(messageType);
-                options.AddHandler(handlerType);
+                var handler = factory.Create(messageType);
+                options.AddHandler(handler);
             }
         }
 
