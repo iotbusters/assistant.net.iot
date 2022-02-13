@@ -1,5 +1,4 @@
 ﻿using Assistant.Net.Messaging;
-using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.RetryStrategies;
 using Assistant.Net.Scheduler.Trigger.Abstractions;
 using Assistant.Net.Scheduler.Trigger.Options;
@@ -42,7 +41,7 @@ namespace Assistant.Net.Scheduler.Trigger.Tests.Fixtures
                             //.RemoveInterceptor<CachingInterceptor>()
                             //.RemoveInterceptor<RetryingInterceptor>()
                             .ClearInterceptors())
-                        .ConfigureMongoHandlingOptions(o =>
+                        .ConfigureMongoHandlingServerOptions(o =>
                         {
                             o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
                             o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);

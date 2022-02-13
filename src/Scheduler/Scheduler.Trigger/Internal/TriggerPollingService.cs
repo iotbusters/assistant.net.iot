@@ -1,7 +1,6 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using Assistant.Net.Scheduler.Trigger.Options;
 using Microsoft.Extensions.Hosting;
@@ -25,7 +24,7 @@ namespace Assistant.Net.Scheduler.Trigger.Internal
         private readonly ReloadableOptionsSource eventSource;
         private readonly IMessagingClient client;
         private readonly ISystemLifetime lifetime;
-        private readonly IOptionsMonitor<MongoHandlingOptions> optHandling;
+        private readonly IOptionsMonitor<MongoHandlingServerOptions> optHandling;
         private readonly IOptionsMonitor<MessagingClientOptions> optClient;
         private readonly ITypeEncoder typeEncoder;
 
@@ -36,7 +35,7 @@ namespace Assistant.Net.Scheduler.Trigger.Internal
             ITypeEncoder typeEncoder,
             IMessagingClient client,
             ISystemLifetime lifetime,
-            IOptionsMonitor<MongoHandlingOptions> optHandling,
+            IOptionsMonitor<MongoHandlingServerOptions> optHandling,
             IOptionsMonitor<MessagingClientOptions> optClient)
         {
             this.logger = logger;
@@ -104,8 +103,8 @@ namespace Assistant.Net.Scheduler.Trigger.Internal
                 .ToDictionary(x => x.id, x => x.type!);
             eventSource.Reload(events.Values);
 
-            //var value2 = optHandling.CurrentValue;
-            //var client2 = optClient.Get(MongoOptionsNames.DefaultName);
+            var value2 = optHandling.CurrentValue;
+            var client2 = optClient.Get(MongoOptionsNames.DefaultName);
 
             logger.LogDebug("Reloaded supported trigger events to handle.");
         }

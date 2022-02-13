@@ -32,7 +32,7 @@ namespace Assistant.Net.Scheduler.Api.Tests.Fixtures
                     .AddMongoMessageHandling(b => b
                         .RemoveInterceptor<CachingInterceptor>()
                         .RemoveInterceptor<RetryingInterceptor>())
-                    .ConfigureMongoHandlingOptions(o =>
+                    .ConfigureMongoHandlingServerOptions(o =>
                     {
                         o.InactivityDelayTime = TimeSpan.FromSeconds(0.005);
                         o.NextMessageDelayTime = TimeSpan.FromSeconds(0.001);

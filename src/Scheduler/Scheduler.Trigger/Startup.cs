@@ -31,7 +31,7 @@ namespace Assistant.Net.Scheduler.Trigger
                 .AddMongo<TriggerReferencesQuery>())
             .AddSingleton<ReloadableOptionsSource>()
             .AddOptions<MessagingClientOptions>(MongoOptionsNames.DefaultName)
-            .Bind(typeof(ReloadableOptionsSource))
+            .Bind<ReloadableOptionsSource>()
             .Services
             .AddSingleton<IMessageHandlerFactory, DefaultMessageHandlerFactory>();
 
