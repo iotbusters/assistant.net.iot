@@ -1,58 +1,50 @@
 ﻿using Assistant.Net.Abstractions;
-using Assistant.Net.Messaging;
 using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Scheduler.Trigger.Abstractions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Assistant.Net.Scheduler.Trigger.Internal
+namespace Assistant.Net.Scheduler.Trigger.Internal;
+
+/// <summary>
+///     Known message type handling configuration options source implementation.
+/// </summary>
+internal class ReloadableOptionsSource : ConfigureOptionsSourceBase<MessagingClientOptions>
 {
-    internal class ReloadableOptionsSource : ConfigureOptionsSourceBase<MessagingClientOptions>
+    private readonly ILogger<ReloadableOptionsSource> logger;
+    private Dictionary<Guid, Type> knownMessageTypes = new();
+
+    public ReloadableOptionsSource(ILogger<ReloadableOptionsSource> logger) =>
+        this.logger = logger;
+
+    public override void Configure(MessagingClientOptions options)
     {
-        private readonly ILogger<Startup> logger;
-        private readonly IMessageHandlerFactory factory;
+        options.Handlers.Clear();
+        options.AddGenericHandlers(knownMessageTypes);
+    }
 
-        public ReloadableOptionsSource(
-            ILogger<Startup> logger,
-            IMessageHandlerFactory factory)
+    /// <summary>
+    ///     Triggers message type handling configuration renewal.
+    /// </summary>
+    /// <param name="triggerMessageTypes">Known message types to allow their handling.</param>
+    public void Reload(Dictionary<Guid, Type> triggerMessageTypes)
+    {
+        var unsupportedTypes = triggerMessageTypes.Where(x => !x.Value.IsAssignableTo(typeof(IMessage<None>))).ToArray();
+        if (unsupportedTypes.Any())
         {
-            this.logger = logger;
-            this.factory = factory;
+            foreach (var unsupportedType in unsupportedTypes)
+                triggerMessageTypes.Remove(unsupportedType.Key);
+
+            var unsupportedMessageTypes = unsupportedTypes.Select(x => x.Value).ToArray();
+            logger.LogDebug("Found unsupported {MessageTypes} expecting a response.", (object)unsupportedMessageTypes);
         }
 
-        public HashSet<Type> MessageTypes { get; private set; } = new();
+        knownMessageTypes = triggerMessageTypes;
+        var messageTypes = triggerMessageTypes.Values.ToArray();
+        logger.LogDebug("Reload {MessageTypes}.", (object)messageTypes);
 
-        public override void Configure(MessagingClientOptions options)
-        {
-            options.Handlers.Clear();
-            foreach (var messageType in MessageTypes)
-            {
-                var handler = factory.Create(messageType);
-                options.AddHandler(handler);
-            }
-        }
-
-        public void Reload(IEnumerable<Type> messageTypes)
-        {
-            var types = messageTypes.ToHashSet();
-
-            var unsupportedTypes = types.Where(x => !x.IsAssignableTo(typeof(IMessage<None>))).ToArray();
-            if (unsupportedTypes.Any())
-            {
-                foreach (var unsupportedType in unsupportedTypes)
-                    types.Remove(unsupportedType);
-
-                logger.LogDebug("Found unsupported {MessageTypes} expecting a response.", (object)unsupportedTypes);
-            }
-
-            MessageTypes = types;
-
-            logger.LogDebug("Reload {MessageTypes}.", types);
-
-            Reload();
-        }
+        Reload();
     }
 }

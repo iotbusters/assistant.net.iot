@@ -13,108 +13,107 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.Tests.Controllers
+namespace Assistant.Net.Scheduler.Api.Tests.Controllers;
+
+public class AutomationsControllerTests
 {
-    public class AutomationsControllerTests
+    [Test]
+    public async Task Get_automations()
     {
-        [Test]
-        public async Task Get_automations()
+        var automations = new[] {new AutomationReferenceModel(id: Guid.NewGuid())};
+        var handler = new TestMessageHandler<AutomationReferencesQuery, IEnumerable<AutomationReferenceModel>>(_ => automations);
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+
+        var response = await fixture.Get("http://localhost/api/automations");
+
+        response.Should().BeEquivalentTo(new
         {
-            var automations = new[] {new AutomationReferenceModel(id: Guid.NewGuid())};
-            var handler = new TestMessageHandler<AutomationReferencesQuery, IEnumerable<AutomationReferenceModel>>(_ => automations);
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+            StatusCode = HttpStatusCode.OK,
+            RequestMessage = new {RequestUri = new Uri("http://localhost/api/automations")},
+            Content = fixture.Content(automations)
+        });
+    }
 
-            var response = await fixture.Get("http://localhost/api/automations");
+    [Test]
+    public async Task Get_automations_id()
+    {
+        var automation = new AutomationModel(id: Guid.NewGuid(), "name", new[] {new AutomationJobReferenceModel(id: Guid.NewGuid())});
+        var handler = new TestMessageHandler<AutomationQuery, AutomationModel>(_ => automation);
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
-            response.Should().BeEquivalentTo(new
-            {
-                StatusCode = HttpStatusCode.OK,
-                RequestMessage = new {RequestUri = new Uri("http://localhost/api/automations")},
-                Content = fixture.Content(automations)
-            });
-        }
+        var response = await fixture.Get($"http://localhost/api/automations/{automation.Id}");
 
-        [Test]
-        public async Task Get_automations_id()
+        response.Should().BeEquivalentTo(new
         {
-            var automation = new AutomationModel(id: Guid.NewGuid(), "name", new[] {new AutomationJobReferenceModel(id: Guid.NewGuid())});
-            var handler = new TestMessageHandler<AutomationQuery, AutomationModel>(_ => automation);
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+            StatusCode = HttpStatusCode.OK,
+            RequestMessage = new {RequestUri = new Uri($"http://localhost/api/automations/{automation.Id}")},
+            Content = fixture.Content(automation)
+        });
+        handler.Request.Should().BeEquivalentTo(new AutomationQuery(automation.Id));
+    }
 
-            var response = await fixture.Get($"http://localhost/api/automations/{automation.Id}");
+    [Test]
+    public async Task Post_automations()
+    {
+        var automationId = Guid.NewGuid();
+        var handler = new TestMessageHandler<AutomationCreateCommand, Guid>(_ => automationId);
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
-            response.Should().BeEquivalentTo(new
-            {
-                StatusCode = HttpStatusCode.OK,
-                RequestMessage = new {RequestUri = new Uri($"http://localhost/api/automations/{automation.Id}")},
-                Content = fixture.Content(automation)
-            });
-            handler.Request.Should().BeEquivalentTo(new AutomationQuery(automation.Id));
-        }
-
-        [Test]
-        public async Task Post_automations()
+        var command = new AutomationCreateCommand("name", new[] {new JobReferenceDto(id: Guid.NewGuid())});
+        var response = await fixture.Post("http://localhost/api/automations", new AutomationCreateModel
         {
-            var automationId = Guid.NewGuid();
-            var handler = new TestMessageHandler<AutomationCreateCommand, Guid>(_ => automationId);
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+            Name = command.Name,
+            Jobs = command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)).ToArray()
+        });
 
-            var command = new AutomationCreateCommand("name", new[] {new JobReferenceDto(id: Guid.NewGuid())});
-            var response = await fixture.Post("http://localhost/api/automations", new AutomationCreateModel
-            {
-                Name = command.Name,
-                Jobs = command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)).ToArray()
-            });
-
-            response.Should().BeEquivalentTo(new
-            {
-                StatusCode = HttpStatusCode.Created,
-                RequestMessage = new {RequestUri = new Uri("http://localhost/api/automations")},
-                Headers = new {Location = new Uri($"http://localhost/api/automations/{automationId}")},
-                Content = fixture.CreatedContent()
-            });
-            handler.Request.Should().BeEquivalentTo(command);
-        }
-
-        [Test]
-        public async Task Put_automations_id()
+        response.Should().BeEquivalentTo(new
         {
-            var automationId = Guid.NewGuid();
-            var handler = new TestMessageHandler<AutomationUpdateCommand, None>(_ => new None());
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+            StatusCode = HttpStatusCode.Created,
+            RequestMessage = new {RequestUri = new Uri("http://localhost/api/automations")},
+            Headers = new {Location = new Uri($"http://localhost/api/automations/{automationId}")},
+            Content = fixture.CreatedContent()
+        });
+        handler.Request.Should().BeEquivalentTo(command);
+    }
 
-            var command = new AutomationUpdateCommand(automationId, "name", new[] {new JobReferenceDto(id: Guid.NewGuid())});
-            var response = await fixture.Put($"http://localhost/api/automations/{automationId}", new AutomationUpdateModel
-            {
-                Name = command.Name,
-                Jobs = command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)).ToArray()
-            });
+    [Test]
+    public async Task Put_automations_id()
+    {
+        var automationId = Guid.NewGuid();
+        var handler = new TestMessageHandler<AutomationUpdateCommand, None>(_ => new None());
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
-            response.Should().BeEquivalentTo(new
-            {
-                StatusCode = HttpStatusCode.NoContent,
-                RequestMessage = new { RequestUri = new Uri($"http://localhost/api/automations/{automationId}") },
-                Content = fixture.NoContent()
-            });
-            handler.Request.Should().BeEquivalentTo(command);
-        }
-
-        [Test]
-        public async Task Delete_automations_id()
+        var command = new AutomationUpdateCommand(automationId, "name", new[] {new JobReferenceDto(id: Guid.NewGuid())});
+        var response = await fixture.Put($"http://localhost/api/automations/{automationId}", new AutomationUpdateModel
         {
-            var automationId = Guid.NewGuid();
-            var handler = new TestMessageHandler<AutomationDeleteCommand, None>(_ => new None());
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+            Name = command.Name,
+            Jobs = command.Jobs.Select(x => new AutomationJobReferenceModel(x.Id)).ToArray()
+        });
 
-            var response = await fixture.Delete($"http://localhost/api/automations/{automationId}");
+        response.Should().BeEquivalentTo(new
+        {
+            StatusCode = HttpStatusCode.NoContent,
+            RequestMessage = new { RequestUri = new Uri($"http://localhost/api/automations/{automationId}") },
+            Content = fixture.NoContent()
+        });
+        handler.Request.Should().BeEquivalentTo(command);
+    }
 
-            response.Should().BeEquivalentTo(new
-            {
-                StatusCode = HttpStatusCode.NoContent,
-                RequestMessage = new { RequestUri = new Uri($"http://localhost/api/automations/{automationId}") },
-                Content = fixture.NoContent()
-            });
-            handler.Request.Should().BeEquivalentTo(new AutomationDeleteCommand(automationId));
-        }
+    [Test]
+    public async Task Delete_automations_id()
+    {
+        var automationId = Guid.NewGuid();
+        var handler = new TestMessageHandler<AutomationDeleteCommand, None>(_ => new None());
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+
+        var response = await fixture.Delete($"http://localhost/api/automations/{automationId}");
+
+        response.Should().BeEquivalentTo(new
+        {
+            StatusCode = HttpStatusCode.NoContent,
+            RequestMessage = new { RequestUri = new Uri($"http://localhost/api/automations/{automationId}") },
+            Content = fixture.NoContent()
+        });
+        handler.Request.Should().BeEquivalentTo(new AutomationDeleteCommand(automationId));
     }
 }

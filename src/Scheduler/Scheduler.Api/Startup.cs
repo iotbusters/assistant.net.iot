@@ -1,6 +1,5 @@
 using Assistant.Net.Messaging;
-using Assistant.Net.Messaging.Interceptors;
-using Assistant.Net.Messaging.Options;
+using Assistant.Net.Options;
 using Assistant.Net.Scheduler.Api.Conventions;
 using Assistant.Net.Scheduler.Api.Handlers;
 using Assistant.Net.Scheduler.Api.Middlewares;
@@ -17,7 +16,6 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.IO;
 using System.Text.Json.Serialization;
-using MongoNames = Assistant.Net.Scheduler.Contracts.MongoNames;
 
 namespace Assistant.Net.Scheduler.Api;
 
@@ -38,25 +36,23 @@ public class Startup
     {
         services
             .AddStorage(b => b
-                .UseMongo(Configuration.GetConnectionString(ConfigurationNames.Database))
+                .UseMongo(ConfigureStorage)
                 .AddMongo<Guid, AutomationModel>()
                 .AddMongo<Guid, JobModel>()
                 .AddMongo<Guid, RunModel>()
                 .AddMongo<Guid, TriggerModel>())
             .AddMongoMessageHandling(b => b
-                .UseMongo(ConfigureMongo)
-                .RemoveInterceptor<CachingInterceptor>()
+                .UseMongo(ConfigureMessaging)
                 .AddHandler<AutomationHandlers>()
                 .AddHandler<JobHandlers>()
                 .AddHandler<RunHandlers>()
                 .AddHandler<TriggerHandlers>())
             .AddMessagingClient(b => b
-                .RemoveInterceptor<CachingInterceptor>()
                 .AddHandler<AutomationHandlers>()
                 .AddHandler<JobHandlers>()
                 .AddHandler<RunHandlers>()
                 .AddHandler<TriggerHandlers>()
-                .UseMongo(ConfigureMongo)
+                .UseMongo(ConfigureMessaging)
                 .AddMongo<RunSucceededEvent>()
                 .AddMongo<RunFailedEvent>());
 
@@ -68,14 +64,13 @@ public class Startup
         //.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, o => {});
         //.AddOAuth(JwtBearerDefaults.AuthenticationScheme, o => {});
         //services.AddAuthorization();
-        services
-            .AddControllers(o =>
-            {
-                o.Conventions.Add(new ResponseConvention());
-                o.Conventions.Add(new ContentTypeConvention());
-                // todo: implement https://restfulapi.net/hateoas/
-                //options.Conventions.Add(new HateoasConvention());
-            });
+        services.AddControllers(o =>
+        {
+            o.Conventions.Add(new ResponseConvention());
+            o.Conventions.Add(new ContentTypeConvention());
+            // todo: implement https://restfulapi.net/hateoas/
+            //options.Conventions.Add(new HateoasConvention());
+        });
         services.Configure<JsonOptions, IServiceProvider>((o, p) =>
         {
             o.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -121,16 +116,17 @@ public class Startup
                 // todo: implement authorization
                 //.RequireAuthorization()
             })
-            .UseSwagger(o =>
-                o.PreSerializeFilters.Add((doc, req) => doc.Servers.Add(new OpenApiServer {Url = $"{req.Scheme}://{req.Host}/{baseUrl}"})))
+            .UseSwagger(o => o.PreSerializeFilters.Add((doc, req) => doc.Servers.Add(
+                new OpenApiServer {Url = $"{req.Scheme}://{req.Host}/{baseUrl}"})))
             .UseSwaggerUI()
             .UseMiddleware<DiagnosticMiddleware>();
     }
 
-    private void ConfigureMongo(MongoOptions options)
-    {
-        options
-            .Connection(Configuration.GetConnectionString(ConfigurationNames.Messaging))
-            .Database(MongoNames.DatabaseName);
-    }
+    private void ConfigureStorage(MongoOptions options) => options
+        .Connection(Configuration.GetConnectionString(ConfigurationNames.Database))
+        .Database(SchedulerMongoNames.DatabaseName);
+
+    private void ConfigureMessaging(MongoOptions options) => options
+        .Connection(Configuration.GetConnectionString(ConfigurationNames.Messaging))
+        .Database(SchedulerMongoNames.DatabaseName);
 }

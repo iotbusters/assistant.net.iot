@@ -1,10 +1,27 @@
-﻿namespace Assistant.Net.Scheduler.Contracts.Enums
+﻿namespace Assistant.Net.Scheduler.Contracts.Enums;
+
+/// <summary>
+///     Automation run instance status.
+/// </summary>
+public enum RunStatus
 {
-    public enum RunStatus
-    {
-        Scheduled = 1,
-        Started,
-        Succeeded,
-        Failed
-    }
+    /// <summary>
+    ///     Run was scheduled.
+    /// </summary>
+    Scheduled = 1,
+
+    /// <summary>
+    ///     Run was started.
+    /// </summary>
+    Started,
+
+    /// <summary>
+    ///     Run was succeeded.
+    /// </summary>
+    Succeeded,
+
+    /// <summary>
+    ///     Run was failed.
+    /// </summary>
+    Failed
 }

@@ -13,96 +13,94 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.Tests.Controllers
+namespace Assistant.Net.Scheduler.Api.Tests.Controllers;
+
+public class RunsControllerTests
 {
-    public class RunsControllerTests
+    [Test]
+    public async Task Get_Runs_id()
     {
-        [Test]
-        public async Task Get_Runs_id()
+        var runId = Guid.NewGuid();
+        var snapshot = new JobTriggerEventModel(
+            id: Guid.NewGuid(),
+            name: "name",
+            triggerEventName: "Event",
+            triggerEventMask: new Dictionary<string, string>());
+        var run = new RunModel(runId, nextRunId: Guid.NewGuid(), automationId: Guid.NewGuid(), snapshot);
+        var handler = new TestMessageHandler<RunQuery, RunModel>(_ => run);
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+
+        var response = await fixture.Get($"http://localhost/api/runs/{runId}");
+
+        response.Should().BeEquivalentTo(new
         {
-            var runId = Guid.NewGuid();
-            var snapshot = new JobTriggerModel(
-                id: Guid.NewGuid(),
-                name: "name",
-                triggerEventName: "Event",
-                triggerEventMask: new Dictionary<string, string>());
-            var run = new RunModel(runId, nextRunId: Guid.NewGuid(), automationId: Guid.NewGuid(), snapshot);
-            var handler = new TestMessageHandler<RunQuery, RunModel>(_ => run);
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+            StatusCode = HttpStatusCode.OK,
+            RequestMessage = new {RequestUri = new Uri($"http://localhost/api/runs/{runId}")},
+            Content = fixture.Content(run)
+        });
+        handler.Request.Should().BeEquivalentTo(new RunQuery(runId));
+    }
 
-            var response = await fixture.Get($"http://localhost/api/runs/{runId}");
+    [Test]
+    public async Task Post_Runs()
+    {
+        var runId = Guid.NewGuid();
+        var handler = new TestMessageHandler<RunCreateCommand, Guid>(_ => runId);
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
-            response.Should().BeEquivalentTo(new
-            {
-                StatusCode = HttpStatusCode.OK,
-                RequestMessage = new {RequestUri = new Uri($"http://localhost/api/runs/{runId}")},
-                Content = fixture.Content(run)
-            });
-            handler.Request.Should().BeEquivalentTo(new RunQuery(runId));
-        }
-
-        [Test]
-        public async Task Post_Runs()
+        var command = new RunCreateCommand(automationId: Guid.NewGuid());
+        var response = await fixture.Post("http://localhost/api/runs", new RunCreateModel
         {
-            var runId = Guid.NewGuid();
-            var handler = new TestMessageHandler<RunCreateCommand, Guid>(_ => runId);
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+            AutomationId = command.AutomationId
+        });
 
-            var command = new RunCreateCommand(automationId: Guid.NewGuid());
-            var response = await fixture.Post("http://localhost/api/runs", new RunCreateModel
-            {
-                AutomationId = command.AutomationId
-            });
-
-            response.Should().BeEquivalentTo(new
-            {
-                StatusCode = HttpStatusCode.Created,
-                RequestMessage = new {RequestUri = new Uri("http://localhost/api/runs")},
-                Headers = new {Location = new Uri($"http://localhost/api/runs/{runId}")},
-                Content = fixture.CreatedContent()
-            });
-            handler.Request.Should().BeEquivalentTo(command);
-        }
-
-        [Test]
-        public async Task Put_Runs_id()
+        response.Should().BeEquivalentTo(new
         {
-            var runId = Guid.NewGuid();
-            var handler = new TestMessageHandler<RunUpdateCommand, None>(_ => new None());
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+            StatusCode = HttpStatusCode.Created,
+            RequestMessage = new {RequestUri = new Uri("http://localhost/api/runs")},
+            Headers = new {Location = new Uri($"http://localhost/api/runs/{runId}")},
+            Content = fixture.CreatedContent()
+        });
+        handler.Request.Should().BeEquivalentTo(command);
+    }
 
-            var command = new RunUpdateCommand(runId, new RunStatusDto(RunStatus.Started, "message"));
-            var response = await fixture.Put($"http://localhost/api/runs/{runId}", new RunUpdateModel
-            {
-                Status = command.Status
-            });
-            var s = await response.Content.ReadAsStringAsync();
+    [Test]
+    public async Task Put_Runs_id()
+    {
+        var runId = Guid.NewGuid();
+        var handler = new TestMessageHandler<RunUpdateCommand, None>(_ => new None());
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
-            response.Should().BeEquivalentTo(new
-            {
-                StatusCode = HttpStatusCode.NoContent,
-                RequestMessage = new { RequestUri = new Uri($"http://localhost/api/runs/{runId}") },
-                Content = fixture.NoContent()
-            });
-            handler.Request.Should().BeEquivalentTo(command);
-        }
-
-        [Test]
-        public async Task Delete_Runs_id()
+        var command = new RunUpdateCommand(runId, new RunStatusDto(RunStatus.Started, "message"));
+        var response = await fixture.Put($"http://localhost/api/runs/{runId}", new RunUpdateModel
         {
-            var runId = Guid.NewGuid();
-            var handler = new TestMessageHandler<RunDeleteCommand, None>(_ => new None());
-            using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+            Status = command.Status
+        });
 
-            var response = await fixture.Delete($"http://localhost/api/runs/{runId}");
+        response.Should().BeEquivalentTo(new
+        {
+            StatusCode = HttpStatusCode.NoContent,
+            RequestMessage = new { RequestUri = new Uri($"http://localhost/api/runs/{runId}") },
+            Content = fixture.NoContent()
+        });
+        handler.Request.Should().BeEquivalentTo(command);
+    }
 
-            response.Should().BeEquivalentTo(new
-            {
-                StatusCode = HttpStatusCode.NoContent,
-                RequestMessage = new { RequestUri = new Uri($"http://localhost/api/runs/{runId}") },
-                Content = fixture.NoContent()
-            });
-            handler.Request.Should().BeEquivalentTo(new RunDeleteCommand(runId));
-        }
+    [Test]
+    public async Task Delete_Runs_id()
+    {
+        var runId = Guid.NewGuid();
+        var handler = new TestMessageHandler<RunDeleteCommand, None>(_ => new None());
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+
+        var response = await fixture.Delete($"http://localhost/api/runs/{runId}");
+
+        response.Should().BeEquivalentTo(new
+        {
+            StatusCode = HttpStatusCode.NoContent,
+            RequestMessage = new { RequestUri = new Uri($"http://localhost/api/runs/{runId}") },
+            Content = fixture.NoContent()
+        });
+        handler.Request.Should().BeEquivalentTo(new RunDeleteCommand(runId));
     }
 }

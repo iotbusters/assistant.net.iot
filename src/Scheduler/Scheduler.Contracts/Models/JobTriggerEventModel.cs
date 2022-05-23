@@ -5,12 +5,12 @@ using System.ComponentModel.DataAnnotations;
 namespace Assistant.Net.Scheduler.Contracts.Models;
 
 /// <summary>
-///     Automation job trigger model.
+///     Automation job model of an event trigger.
 /// </summary>
-public class JobTriggerModel : JobModel
+public class JobTriggerEventModel : JobModel
 {
     /// <summary/>
-    public JobTriggerModel(
+    public JobTriggerEventModel(
         Guid id,
         string name,
         string triggerEventName,

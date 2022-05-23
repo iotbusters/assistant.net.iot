@@ -1,6 +1,5 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 
-namespace Assistant.Net.Scheduler.EventHandler.Tests.Mocks
-{
-    public record TestMessage : IMessage;
-}
+namespace Assistant.Net.Scheduler.EventHandler.Tests.Mocks;
+
+public record TestMessage : IMessage;

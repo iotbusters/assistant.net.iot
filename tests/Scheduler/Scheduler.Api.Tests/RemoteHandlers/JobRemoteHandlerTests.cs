@@ -8,30 +8,29 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.Tests.RemoteHandlers
+namespace Assistant.Net.Scheduler.Api.Tests.RemoteHandlers;
+
+[Timeout(2000)]
+public class JobRemoteHandlerTests
 {
-    [Timeout(2000)]
-    public class JobRemoteHandlerTests
+    [Test]
+    public async Task Handle_JobQuery_delegatesQueryAndReturnsJobModel()
     {
-        [Test]
-        public async Task Handle_JobQuery_delegatesQueryAndReturnsJobModel()
-        {
-            var job = new JobTriggerModel(
-                id: Guid.NewGuid(),
-                name: "name",
-                triggerEventName: "Event",
-                triggerEventMask: new Dictionary<string, string>());
-            var handler = new TestMessageHandler<JobQuery, JobModel>(job);
-            using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-                .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-                .ReplaceMongoHandler(handler)
-                .Build();
+        var job = new JobTriggerEventModel(
+            id: Guid.NewGuid(),
+            name: "name",
+            triggerEventName: "Event",
+            triggerEventMask: new Dictionary<string, string>());
+        var handler = new TestMessageHandler<JobQuery, JobModel>(job);
+        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
+            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
+            .ReplaceMongoHandler(handler)
+            .Build();
 
-            var query = new JobQuery(job.Id);
-            var response = await fixture.Handle(query);
+        var query = new JobQuery(job.Id);
+        var response = await fixture.Handle(query);
 
-            response.Should().BeEquivalentTo(job);
-            handler.Request.Should().BeEquivalentTo(query);
-        }
+        response.Should().BeEquivalentTo(job);
+        handler.Request.Should().BeEquivalentTo(query);
     }
 }

@@ -6,50 +6,70 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Linq;
 
-namespace Assistant.Net.Scheduler.Trigger.Tests.Fixtures
+namespace Assistant.Net.Scheduler.Trigger.Tests.Fixtures;
+
+public class SchedulerRemoteHandlerFixture : IDisposable
 {
-    public class SchedulerRemoteHandlerFixture : IDisposable
+    private readonly TestTriggerQueriesHandler triggerHandler;
+    private readonly TestConfigureOptionsSource remoteSource;
+    private readonly TestConfigureOptionsSource clientSource;
+    public readonly ServiceProvider provider;
+    private readonly IHost host;
+
+    public SchedulerRemoteHandlerFixture(
+        TestTriggerQueriesHandler triggerHandler,
+        TestConfigureOptionsSource remoteSource,
+        TestConfigureOptionsSource clientSource,
+        ServiceProvider provider,
+        IHost host)
     {
-        private readonly TestTriggerQueriesHandler triggerHandler;
-        private readonly TestMessageHandlerFactory factory;
-        private readonly ServiceProvider provider;
-        private readonly IHost host;
+        this.triggerHandler = triggerHandler;
+        this.remoteSource = remoteSource;
+        this.clientSource = clientSource;
+        this.provider = provider;
+        this.host = host;
+    }
 
-        public SchedulerRemoteHandlerFixture(
-            TestTriggerQueriesHandler triggerHandler,
-            TestMessageHandlerFactory factory,
-            ServiceProvider provider,
-            IHost host)
+    public IMessagingClient Client => provider.GetRequiredService<IMessagingClient>();
+
+    public void ReplaceHandlers(params object[] handlerInstances)
+    {
+        remoteSource.Configurations.Add(o =>
         {
-            this.triggerHandler = triggerHandler;
-            this.factory = factory;
-            this.provider = provider;
-            this.host = host;
-        }
-
-        public IMessagingClient Client => provider.GetRequiredService<IMessagingClient>();
-
-        public SchedulerRemoteHandlerFixture RemoveHandler(object handler)
-        {
-            var messageTypes = handler.GetType().GetMessageHandlerInterfaceTypes().Select(x => x.GetGenericArguments().First()).ToArray();
-            if (!messageTypes.Any())
-                throw new ArgumentException("Invalid message handler type.", nameof(handler));
-
-            foreach (var messageType in messageTypes)
+            triggerHandler.Clear();
+            o.Handlers.Clear();
+            o.AddHandler(triggerHandler);
+            foreach (var handlerInstance in handlerInstances)
             {
-                factory.Remove(messageType);
-                triggerHandler.Remove(messageType);
+                o.AddHandler(handlerInstance);
+
+                var handlerType = handlerInstance.GetType();
+                var messageType = handlerType.GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
+                                  ?? throw new ArgumentException("Invalid message handler type.", nameof(handlerInstances));
+                triggerHandler.Add(messageType);
             }
-
-            return this;
-        }
-
-        //public T Service<T>() where T : class => provider.GetRequiredService<T>();
-
-        public void Dispose()
+        });
+        clientSource.Configurations.Add(o =>
         {
-            host.Dispose();
-            provider.Dispose();
-        }
+            o.Handlers.Clear();
+            foreach (var handlerInstance in handlerInstances)
+            {
+                var handlerType = handlerInstance.GetType();
+                var messageType = handlerType.GetMessageHandlerInterfaceTypes().FirstOrDefault()?.GetGenericArguments().First()
+                                  ?? throw new ArgumentException("Invalid message handler type.", nameof(handlerInstances));
+                o.AddMongo(messageType);
+            }
+        });
+        remoteSource.Reload();
+        clientSource.Reload();
+    }
+
+    public T Service<T>() where T : class => provider.GetRequiredService<T>();
+    public T RemoteService<T>() where T : class => host.Services.GetRequiredService<T>();
+
+    public void Dispose()
+    {
+        host.Dispose();
+        provider.Dispose();
     }
 }

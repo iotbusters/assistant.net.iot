@@ -3,7 +3,7 @@
 /// <summary>
 ///     MongoDB related resource names for scheduler message handling.
 /// </summary>
-public static class MongoNames
+public static class SchedulerMongoNames
 {
     /// <summary>
     ///     Database name.

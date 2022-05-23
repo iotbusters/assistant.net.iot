@@ -9,32 +9,31 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.EventHandler.Tests.RemoteHandlers
+namespace Assistant.Net.Scheduler.EventHandler.Tests.RemoteHandlers;
+
+public class TimerTriggeredEventHandlerTests
 {
-    public class TimerTriggeredEventHandlerTests
+    [Test]
+    public async Task Handle_TimerTriggeredEventHandler_delegatesEvent()
     {
-        [Test]
-        public async Task Handle_TimerTriggeredEventHandler_delegatesEvent()
-        {
-            var run = new RunModel(
+        var run = new RunModel(
+            id: Guid.NewGuid(),
+            nextRunId: Guid.NewGuid(),
+            automationId: Guid.NewGuid(),
+            jobSnapshot: new JobTriggerEventModel(
                 id: Guid.NewGuid(),
-                nextRunId: Guid.NewGuid(),
-                automationId: Guid.NewGuid(),
-                jobSnapshot: new JobTriggerModel(
-                    id: Guid.NewGuid(),
-                    name: "name",
-                    triggerEventName: "Event",
-                    triggerEventMask: new Dictionary<string, string>()));
-            var handler = new TestMessageHandler<TimerTriggeredEvent, None>(new None());
-            using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-                .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-                .ReplaceMongoHandler(handler)
-                .Build();
+                name: "name",
+                triggerEventName: "Event",
+                triggerEventMask: new Dictionary<string, string>()));
+        var handler = new TestMessageHandler<TimerTriggeredEvent, None>(new None());
+        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
+            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
+            .ReplaceMongoHandler(handler)
+            .Build();
 
-            var @event = new TimerTriggeredEvent(run.Id);
-            await fixture.Handle(@event);
+        var @event = new TimerTriggeredEvent(run.Id, DateTimeOffset.UtcNow);
+        await fixture.Handle(@event);
 
-            handler.Requests.Should().BeEquivalentTo(new[] {@event});
-        }
+        handler.Requests.Should().BeEquivalentTo(new[] {@event});
     }
 }

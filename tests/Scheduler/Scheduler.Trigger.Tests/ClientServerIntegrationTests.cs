@@ -1,14 +1,12 @@
-﻿using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Exceptions;
-using Assistant.Net.Messaging.Options;
-using Assistant.Net.Scheduler.Contracts.Models;
-using Assistant.Net.Scheduler.Contracts.Queries;
 using Assistant.Net.Scheduler.Trigger.Tests.Fixtures;
 using Assistant.Net.Scheduler.Trigger.Tests.Mocks;
 using FluentAssertions;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Bson;
+using MongoDB.Driver;
 using NUnit.Framework;
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,100 +16,106 @@ namespace Assistant.Net.Scheduler.Trigger.Tests;
 public class ClientServerIntegrationTests
 {
     [Test]
-    public async Task RequestObject_throwsMessageNotRegisteredException_noHandler()
+    public async Task RequestObject_throwsMessageNotRegisteredException_noRegisteredHandler()
     {
-        var handler = new TestMessageHandler<TriggerReferencesQuery, TriggerReferenceModel[]>(Array.Empty<TriggerReferenceModel>());
+        var handler2 = new TestMessageHandler<TestMessage2, TestResponse>(x => new TestResponse(x.Text));
         using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
             .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-            .ReplaceHandler(handler) // just to pass validation.
+            .AddHandler(handler2) // just to pass validation.
             .Build();
 
-        await fixture.Client.Awaiting(x => x.RequestObject(new TestMessage("1")))
+        await fixture.Client.Awaiting(x => x.RequestObject(new TestMessage1("1")))
             .Should().ThrowAsync<MessageNotRegisteredException>()
-            .WithMessage("Message 'TestMessage' wasn't registered.");
+            .WithMessage($"Message '{nameof(TestMessage1)}' wasn't registered.");
     }
 
     [Test]
-    public async Task RequestObject_throwsMessageNotRegisteredException_noLongerHandler()
+    public async Task RequestObject_returnsResponse_registeredHandler()
     {
-        var handler = new TestMessageHandler<TestMessage, TestResponse>(x => new TestResponse(x.Text));
-        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-            .ReplaceHandler(handler)
-            .Build();
-
-        //var o0 = fixture.Service<IOptionsMonitor<MongoHandlingOptions>>();
-        //var o01 = o0.CurrentValue;
-        //var o1 = fixture.Service<IOptionsMonitor<MessagingClientOptions>>();
-        //var o11 = o1.Get("mongo.server");
-
-        fixture.RemoveHandler(handler);
-        //await Task.Yield();
-        //await Task.Yield();
-        //await Task.Yield();
-        //await Task.Yield();
-        //await Task.Yield();
-        //await Task.Yield();
-        //await Task.Yield();
-        //await Task.Yield();
-        //await Task.Yield();
-        //await Task.Yield();
-        //await Task.Yield();
-        //await Task.Yield();
-
-        //var o2 = fixture.Service<IOptionsMonitor<MongoHandlingOptions>>();
-        //var o21 = o0.CurrentValue;
-        //var o3 = fixture.Service<IOptionsMonitor<MessagingClientOptions>>();
-        //var o31 = o1.Get("mongo.server");
-
-        //var a = await fixture.Client.RequestObject(new TestMessage("1"));
-
-        await fixture.Client.Awaiting(x => x.RequestObject(new TestMessage("1")))
-            .Should().ThrowAsync<MessageNotRegisteredException>()
-            .WithMessage("Message 'TestMessage' wasn't registered.");
-    }
-
-    [Test]
-    public async Task RequestObject_returnsResponse()
-    {
-        var handler = new TestMessageHandler<TestMessage, TestResponse>(x => new TestResponse(x.Text));
+        var handler1 = new TestMessageHandler<TestMessage1, TestResponse>(x => new TestResponse(x.Text));
 
         using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
             .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-            //.AddInterceptor(new ErrorHandlingInterceptor())
-            .ReplaceHandler(handler)
+            .AddHandler(handler1)
             .Build();
 
-        var response = await fixture.Client.RequestObject(new TestMessage("1"));
-
+        var response = await fixture.Client.RequestObject(new TestMessage1("1"));
         response.Should().BeEquivalentTo(new TestResponse("1"));
     }
 
-    //public class ErrorHandlingInterceptor : ErrorHandlingInterceptor<IMessage<object>, object>, IMessageInterceptor
-    //{
-    //}
+    [Test]
+    public async Task RequestObject_throwsMessageNotRegisteredException_noLongerRegisteredHandler1()
+    {
+        var handler1 = new TestMessageHandler<TestMessage1, TestResponse>(x => new TestResponse(x.Text));
+        var handler2 = new TestMessageHandler<TestMessage2, TestResponse>(x => new TestResponse(x.Text));
+        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
+            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
+            .AddHandler(handler1)
+            .Build();
 
-    ///// <summary>
-    /////     Global error handling interceptor.
-    ///// </summary>
-    ///// <remarks>
-    /////     The interceptor depends on <see cref="MessagingClientOptions.ExposedExceptions"/>
-    ///// </remarks>
-    //public class ErrorHandlingInterceptor<TMessage, TResponse> : IMessageInterceptor<TMessage, TResponse>
-    //    where TMessage : IMessage<TResponse>
-    //{
-    //    /// <inheritdoc/>
-    //    public async Task<TResponse> Intercept(Func<TMessage, CancellationToken, Task<TResponse>> next, TMessage message, CancellationToken token)
-    //    {
-    //        try
-    //        {
-    //            return await next(message, token);
-    //        }
-    //        catch (Exception ex)
-    //        {
-    //            throw;
-    //        }
+        fixture.ReplaceHandlers(handler2);
 
-    //    }
-    //}
+        await fixture.Client.Awaiting(x => x.RequestObject(new TestMessage1("1")))
+            .Should().ThrowAsync<MessageNotRegisteredException>()
+            .WithMessage($"Message '{nameof(TestMessage1)}' wasn't registered.");
+    }
+
+    [Test]
+    public async Task RequestObject_returnsResponse_laterRegisteredHandler2()
+    {
+        var handler1 = new TestMessageHandler<TestMessage1, TestResponse>(x => new TestResponse(x.Text));
+        var handler2 = new TestMessageHandler<TestMessage2, TestResponse>(x => new TestResponse(x.Text));
+        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
+            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
+            .AddHandler(handler1)
+            .Build();
+
+        fixture.ReplaceHandlers(handler2);
+
+        var response = await fixture.Client.RequestObject(new TestMessage2("2"));
+        response.Should().BeEquivalentTo(new TestResponse("2"));
+    }
+
+    [Test]
+    public async Task RequestObject_returnsResponse_multipleRegisteredHandlers()
+    {
+        var handler1 = new TestMessageHandler<TestMessage1, TestResponse>(x => new TestResponse(x.Text));
+        var handler2 = new TestMessageHandler<TestMessage2, TestResponse>(x => new TestResponse(x.Text));
+        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
+            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
+            .AddHandler(handler1)
+            .AddHandler(handler2)
+            .Build();
+
+        var response1 = await fixture.Client.RequestObject(new TestMessage1("1"));
+        response1.Should().BeEquivalentTo(new TestResponse("1"));
+        var response2 = await fixture.Client.RequestObject(new TestMessage2("2"));
+        response2.Should().BeEquivalentTo(new TestResponse("2"));
+    }
+
+    [OneTimeSetUp]
+    public async Task OneTimeSetup()
+    {
+        var provider = new ServiceCollection()
+            .ConfigureMongoOptions("", o => o.Connection(SetupMongo.ConnectionString).Database(SetupMongo.Database))
+            .AddMongoClientFactory()
+            .BuildServiceProvider();
+
+        string pingContent;
+        var mongoClient = provider.GetRequiredService<IMongoClientFactory>().CreateClient("");
+        try
+        {
+            var ping = await mongoClient.GetDatabase("db").RunCommandAsync(
+                (Command<BsonDocument>)"{ping:1}",
+                ReadPreference.Nearest,
+                new CancellationTokenSource(200).Token);
+            pingContent = ping.ToString();
+        }
+        catch
+        {
+            pingContent = string.Empty;
+        }
+        if (!pingContent.Contains("ok"))
+            Assert.Ignore($"The tests require mongodb instance at {SetupMongo.ConnectionString}.");
+    }
 }

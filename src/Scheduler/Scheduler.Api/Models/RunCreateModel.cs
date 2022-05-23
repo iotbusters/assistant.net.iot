@@ -1,15 +1,14 @@
 ﻿using System;
 
-namespace Assistant.Net.Scheduler.Api.Models
+namespace Assistant.Net.Scheduler.Api.Models;
+
+/// <summary>
+///     Automation run job create model.
+/// </summary>
+public class RunCreateModel
 {
     /// <summary>
-    ///     Automation run job create model.
+    ///     Related automation id.
     /// </summary>
-    public class RunCreateModel
-    {
-        /// <summary>
-        ///     Related automation id.
-        /// </summary>
-        public Guid AutomationId { get; set; }
-    }
+    public Guid AutomationId { get; set; }
 }

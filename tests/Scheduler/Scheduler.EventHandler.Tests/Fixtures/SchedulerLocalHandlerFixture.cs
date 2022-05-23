@@ -4,24 +4,23 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures
+namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures;
+
+public class SchedulerLocalHandlerFixture : IDisposable
 {
-    public class SchedulerLocalHandlerFixture : IDisposable
+    private readonly ServiceProvider provider;
+
+    public SchedulerLocalHandlerFixture(ServiceProvider provider) =>
+        this.provider = provider;
+
+    public async Task<TResponse> Handle<TResponse>(IMessage<TResponse> request)
     {
-        private readonly ServiceProvider provider;
+        var handler = provider.GetService<IMessagingClient>();
+        handler.Should().NotBeNull();
 
-        public SchedulerLocalHandlerFixture(ServiceProvider provider) =>
-            this.provider = provider;
-
-        public async Task<TResponse> Handle<TResponse>(IMessage<TResponse> request)
-        {
-            var handler = provider.GetService<IMessagingClient>();
-            handler.Should().NotBeNull();
-
-            return await handler!.Request(request);
-        }
-
-        public virtual void Dispose() =>
-            provider.Dispose();
+        return await handler!.Request(request);
     }
+
+    public virtual void Dispose() =>
+        provider.Dispose();
 }

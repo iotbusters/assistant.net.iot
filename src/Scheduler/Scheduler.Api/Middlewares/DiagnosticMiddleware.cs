@@ -2,40 +2,39 @@
 using Microsoft.AspNetCore.Http;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Api.Middlewares
+namespace Assistant.Net.Scheduler.Api.Middlewares;
+
+internal class DiagnosticMiddleware : IMiddleware
 {
-    internal class DiagnosticMiddleware : IMiddleware
+    private readonly IDiagnosticFactory diagnosticFactory;
+
+    public DiagnosticMiddleware(IDiagnosticFactory diagnosticFactory) =>
+        this.diagnosticFactory = diagnosticFactory;
+
+    public async Task InvokeAsync(HttpContext context, RequestDelegate next)
     {
-        private readonly IDiagnosticFactory diagnosticFactory;
-
-        public DiagnosticMiddleware(IDiagnosticFactory diagnosticFactory) =>
-            this.diagnosticFactory = diagnosticFactory;
-
-        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+        // only an /api calls require diagnostic, ignoring swagger endpoints.
+        if (context.Request.Path.StartsWithSegments("/swagger"))
         {
-            // only an /api calls require diagnostic, ignoring swagger endpoints.
-            if (context.Request.Path.StartsWithSegments("/swagger"))
-            {
-                await next(context);
-                return;
-            }
+            await next(context);
+            return;
+        }
 
-            var operation = diagnosticFactory.Start("scheduler-api-request");
+        var operation = diagnosticFactory.Start("scheduler-api-request");
 
-            try
-            {
-                await next(context);
+        try
+        {
+            await next(context);
 
-                if (context.Response.StatusCode == StatusCodes.Status500InternalServerError)
-                    operation.Fail("Handled internal error");
-                else
-                    operation.Complete();
-            }
-            catch
-            {
-                operation.Fail("Unhandled exception");
-                throw;
-            }
+            if (context.Response.StatusCode == StatusCodes.Status500InternalServerError)
+                operation.Fail("Handled internal error");
+            else
+                operation.Complete();
+        }
+        catch
+        {
+            operation.Fail("Unhandled exception");
+            throw;
         }
     }
 }
