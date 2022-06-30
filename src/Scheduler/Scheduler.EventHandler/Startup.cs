@@ -21,23 +21,21 @@ public class Startup
 
     /// <summary/>
     public void ConfigureServices(IServiceCollection services) => services
-        .AddMongoMessageHandling(b => b
+        .AddGenericMessageHandling(b => b
             .UseMongo(ConfigureMessaging)
             .AddHandler<TimerTriggeredEventHandler>()
             .AddHandler<RunSucceededEventHandler>()
             .AddHandler<RunFailedEventHandler>())
-        .AddMessagingClient(b => b
-            .AddHandler<TimerTriggeredEventHandler>()
-            .AddHandler<RunSucceededEventHandler>()
-            .AddHandler<RunFailedEventHandler>()
+        .ConfigureGenericMessagingClient(b=> b
             .UseMongo(ConfigureMessaging)
-            .AddMongo<AutomationReferencesQuery>()
-            .AddMongo<AutomationQuery>()
-            .AddMongo<JobQuery>()
-            .AddMongo<RunQuery>()
-            .AddMongo<RunCreateCommand>()
-            .AddMongo<RunUpdateCommand>()
-            .AddMongo<RunDeleteCommand>());
+            .UseMongoSingleProvider()
+            .AddSingle<AutomationReferencesQuery>()
+            .AddSingle<AutomationQuery>()
+            .AddSingle<JobQuery>()
+            .AddSingle<RunQuery>()
+            .AddSingle<RunCreateCommand>()
+            .AddSingle<RunUpdateCommand>()
+            .AddSingle<RunDeleteCommand>());
 
     private void ConfigureMessaging(MongoOptions options) => options
         .Connection(Configuration.GetConnectionString(ConfigurationNames.Messaging))

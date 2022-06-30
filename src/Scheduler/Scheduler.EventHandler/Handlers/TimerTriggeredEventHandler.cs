@@ -29,6 +29,7 @@ internal class TimerTriggeredEventHandler : IMessageHandler<TimerTriggeredEvent>
 
         var succeeded = new RunStatusDto(RunStatus.Succeeded, $"Timer has triggered the run at {@event.Triggered}");
         await client.Request(new RunUpdateCommand(run.Id, status: succeeded), token);
+
         logger.LogInformation("Run({AutomationId}/{RunId}): succeeded.", run.AutomationId, run.Id);
     }
 }
