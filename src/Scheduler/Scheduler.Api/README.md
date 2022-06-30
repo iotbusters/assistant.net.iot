@@ -21,7 +21,7 @@ The application handles CRUD operations over `Automation`, `Job`, `Run` and `Tri
 An execution flow definition of [jobs](#jobs) sequence.
 e.g. Enabling the light on a room enter, or watering plants daily.
 
-![Automation overview](docs/automation.drawio.png)
+![Automation overview](https://github.com/iotbusters/assistant.net.iot/blob/master/src/Scheduler/Scheduler.Api/docs/automation.drawio.png)
 
 ### Job
 
@@ -30,18 +30,18 @@ One element of [automation](#automation) describing what should happen as part o
 - perform custom action
 - wait for some event occurred (operation completed, a timer event, a sensor event)
 
-![Job overview](docs/job.drawio.png)
+![Job overview](https://github.com/iotbusters/assistant.net.iot/blob/master/src/Scheduler/Scheduler.Api/docs/job.drawio.png)
 
 ### Run
 
 A representation of started flow run due to [automation](#automation) definition. A dedicated run is created
 per [automation job](#job) and linked to each other sequentially reflecting the original job order.
 
-![Run overview](docs/run.drawio.png)
+![Run overview](https://github.com/iotbusters/assistant.net.iot/blob/master/src/Scheduler/Scheduler.Api/docs/run.drawio.png)
 
 ### Trigger
 
 A counterpart of a waiting kind of job. A trigger is being created once associated job run is started and when
 trigger expectations is matched, it completes the job run in response.
 
-![Trigger overview](docs/trigger.drawio.png)
+![Trigger overview](https://github.com/iotbusters/assistant.net.iot/blob/master/src/Scheduler/Scheduler.Api/docs/trigger.drawio.png)
