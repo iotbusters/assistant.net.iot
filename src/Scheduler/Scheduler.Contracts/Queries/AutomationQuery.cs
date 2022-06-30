@@ -7,7 +7,7 @@ namespace Assistant.Net.Scheduler.Contracts.Queries;
 /// <summary>
 ///     Specific automation query.
 /// </summary>
-public class AutomationQuery : IMessage<AutomationModel>, IMessageCacheIgnored
+public class AutomationQuery : IMessage<AutomationModel>, INonCaching
 {
     /// <summary/>
     public AutomationQuery(Guid id) =>

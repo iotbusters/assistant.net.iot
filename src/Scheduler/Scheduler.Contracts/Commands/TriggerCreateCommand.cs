@@ -4,9 +4,9 @@ using System;
 namespace Assistant.Net.Scheduler.Contracts.Commands;
 
 /// <summary>
-///     Automation run trigger deleting command.
+///     Automation run trigger creation command.
 /// </summary>
-public class TriggerCreateCommand : IMessage<Guid>, IMessageCacheIgnored
+public sealed class TriggerCreateCommand : IMessage<Guid>
 {
     /// <summary/>
     public TriggerCreateCommand(Guid runId) =>

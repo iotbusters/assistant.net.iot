@@ -7,7 +7,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Automation run updating command.
 /// </summary>
-public class RunUpdateCommand : IMessage
+public sealed class RunUpdateCommand : IMessage
 {
     /// <summary/>
     public RunUpdateCommand(Guid id, RunStatusDto status)

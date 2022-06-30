@@ -12,12 +12,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.diagnostics" Version="0.2.109" />
-    <PackageReference Include="assistant.net.messaging.mongo.client" Version="0.2.109" />
-    <PackageReference Include="assistant.net.messaging.mongo.server" Version="0.2.109" />
-    <PackageReference Include="assistant.net.storage.mongo" Version="0.2.109" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.5" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.15.1" />
+    <PackageReference Include="assistant.net.diagnostics" Version="0.3.128" />
+    <PackageReference Include="assistant.net.messaging.mongo.client" Version="0.3.128" />
+    <PackageReference Include="assistant.net.messaging.mongo.server" Version="0.3.128" />
+    <PackageReference Include="assistant.net.storage.mongo" Version="0.3.128" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.6" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.16.1" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -32,7 +32,17 @@
   <PropertyGroup>
     <Product>Assistant.NET</Product>
     <RepositoryType>github</RepositoryType>
+    <PackageTags>scheduler api handler</PackageTags>
     <Description>API for configuring automating jobs.</Description>
+    <RepositoryUrl>https://github.com/iotbusters/assistant.net.iot</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net.iot/blob/master/src/Scheduler/Scheduler.Api/README.md</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath="" />
+    <None Include="docs\" Pack="true" PackagePath="docs" />
+  </ItemGroup>
 
 </Project>

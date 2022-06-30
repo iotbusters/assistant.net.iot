@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Automation updating command.
 /// </summary>
-public class AutomationUpdateCommand : IMessage
+public sealed class AutomationUpdateCommand : IMessage, INonCaching
 {
     /// <summary/>
     public AutomationUpdateCommand(Guid id, string name, JobReferenceDto[] jobs)

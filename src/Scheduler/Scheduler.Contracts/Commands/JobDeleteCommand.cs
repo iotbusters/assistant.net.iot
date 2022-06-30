@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Automation job deleting command.
 /// </summary>
-public class JobDeleteCommand : IMessage
+public sealed class JobDeleteCommand : IMessage
 {
     /// <summary/>
     public JobDeleteCommand(Guid id) =>

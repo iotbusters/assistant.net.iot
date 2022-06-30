@@ -10,7 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.messaging" Version="0.2.109" />
+    <PackageReference Include="assistant.net.messaging" Version="0.3.128" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -20,7 +20,16 @@
   <PropertyGroup>
     <Product>Assistant.NET</Product>
     <RepositoryType>github</RepositoryType>
+    <PackageTags>scheduler contracts</PackageTags>
     <Description>Automating jobs configuraiton and running contracts.</Description>
+    <RepositoryUrl>https://github.com/iotbusters/assistant.net.iot</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/iotbusters/assistant.net.iot/blob/master/src/Scheduler/Scheduler.Contracts/README.md</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\..\LICENSE" Link="LICENSE" Pack="true" PackagePath="" />
+    <None Include="README.md" Pack="true" PackagePath="" />
+  </ItemGroup>
 
 </Project>

@@ -1,18 +1,20 @@
-﻿using System;
+﻿using Assistant.Net.Scheduler.Contracts.Commands;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Assistant.Net.Scheduler.Contracts.Models;
 
 /// <summary>
-///     Automation job model base.
+///     Automation job model.
 /// </summary>
-public abstract class JobModel
+public class JobModel
 {
     /// <summary/>
-    protected JobModel(Guid id, string name)
+    public JobModel(Guid id, string name, JobConfigurationDto configuration)
     {
         Id = id;
         Name = name;
+        Configuration = configuration;
     }
 
     /// <summary>
@@ -25,4 +27,9 @@ public abstract class JobModel
     /// </summary>
     [Required]
     public string Name { get; }
+
+    /// <summary>
+    ///     Specific job configuration.
+    /// </summary>
+    public JobConfigurationDto Configuration { get; }
 }

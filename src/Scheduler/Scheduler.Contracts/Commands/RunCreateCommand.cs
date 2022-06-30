@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Automation run creation command.
 /// </summary>
-public class RunCreateCommand : IMessage<Guid>, IMessageCacheIgnored
+public sealed class RunCreateCommand : IMessage<Guid>, INonCaching
 {
     /// <summary/>
     public RunCreateCommand(Guid automationId) =>

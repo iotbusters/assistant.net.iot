@@ -54,7 +54,7 @@ public class RunsController
         client.Request(new RunUpdateCommand(id, model.Status), token);
 
     /// <summary>
-    ///     Deletes automation run cascadly.
+    ///     Deletes automation run in cascade manner.
     /// </summary>
     /// <param name="id">Run id.</param>
     /// <param name="token" />

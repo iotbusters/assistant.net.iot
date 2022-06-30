@@ -4,16 +4,24 @@ using System;
 namespace Assistant.Net.Scheduler.Contracts.Commands;
 
 /// <summary>
-///     Automation job creation command base.
+///     Automation job creation command.
 /// </summary>
-public abstract class JobCreateCommand : IMessage<Guid>, IMessageCacheIgnored
+public sealed class JobCreateCommand : IMessage<Guid>, INonCaching
 {
     /// <summary/>
-    protected JobCreateCommand(string name) =>
+    public JobCreateCommand(string name, JobConfigurationDto configuration)
+    {
         Name = name;
+        Configuration = configuration;
+    }
 
     /// <summary>
     ///     Name.
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    ///     Specific job strategy configuration.
+    /// </summary>
+    public JobConfigurationDto Configuration { get; }
 }

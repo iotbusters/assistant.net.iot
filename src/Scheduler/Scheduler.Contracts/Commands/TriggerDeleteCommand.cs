@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Automation run trigger deleting command.
 /// </summary>
-public class TriggerDeleteCommand : IMessage
+public sealed class TriggerDeleteCommand : IMessage
 {
     /// <summary/>
     public TriggerDeleteCommand(Guid runId) =>

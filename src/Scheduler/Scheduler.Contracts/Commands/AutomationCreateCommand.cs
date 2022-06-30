@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Automation creation command.
 /// </summary>
-public class AutomationCreateCommand : IMessage<Guid>, IMessageCacheIgnored
+public sealed class AutomationCreateCommand : IMessage<Guid>, INonCaching
 {
     /// <summary/>
     public AutomationCreateCommand(string name, JobReferenceDto[] jobs)

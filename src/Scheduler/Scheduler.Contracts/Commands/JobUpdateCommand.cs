@@ -4,15 +4,16 @@ using System;
 namespace Assistant.Net.Scheduler.Contracts.Commands;
 
 /// <summary>
-///     Automation job updating command base.
+///     Automation job updating command.
 /// </summary>
-public abstract class JobUpdateCommand : IMessage
+public sealed class JobUpdateCommand : IMessage, INonCaching
 {
     /// <summary/>
-    protected JobUpdateCommand(Guid id, string name)
+    public JobUpdateCommand(Guid id, string name, JobConfigurationDto configuration)
     {
         Id = id;
         Name = name;
+        Configuration = configuration;
     }
 
     /// <summary>
@@ -21,7 +22,12 @@ public abstract class JobUpdateCommand : IMessage
     public Guid Id { get; }
 
     /// <summary>
-    ///     Name.
+    ///     New name.
     /// </summary>
     public string Name { get; }
+
+    /// <summary>
+    ///     New specific strategy configuration.
+    /// </summary>
+    public JobConfigurationDto Configuration { get; }
 }

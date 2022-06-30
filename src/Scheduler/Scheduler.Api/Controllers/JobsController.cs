@@ -41,14 +41,22 @@ public class JobsController
     /// <param name="token" />
     /// <returns>Location header with reference to the new automation job.</returns>
     [HttpPost]
-    public Task<Guid> Create(JobCreateModel model, CancellationToken token) => model switch
+    public Task<Guid> Create(JobCreateModel model, CancellationToken token)
     {
-        {TriggerEventName: not null, TriggerEventMask: not null} =>
-            client.Request(new JobTriggerCreateCommand(model.Name, model.TriggerEventName, model.TriggerEventMask), token),
-        {Action: not null} =>
-            client.Request(new JobActionCreateCommand(model.Name, model.Action), token),
-        _ => throw new MessageContractException("Invalid payload.")
-    };
+        JobConfigurationDto configuration = model switch
+        {
+            JobEventCreateModel {EventName: not null, EventMask: not null} x =>
+                new JobEventConfigurationDto(x.EventName, x.EventMask),
+            JobActionCreateModel {Action: not null} x =>
+                new JobActionConfigurationDto(x.Action),
+            JobDailyTimerCreateModel x =>
+                new JobDailyTimerConfigurationDto(x.Time, x.Days),
+            JobStopwatchTimerCreateModel x =>
+                new JobStopwatchTimerConfigurationDto(x.Time),
+            _ => throw new MessageContractException("Invalid payload.")
+        };
+        return client.Request(new JobCreateCommand(model.Name, configuration), token);
+    }
 
     /// <summary>
     ///     Updates existing automation job by <paramref name="id"/>.
@@ -57,14 +65,12 @@ public class JobsController
     /// <param name="model">Update job details.</param>
     /// <param name="token" />
     [HttpPut("{id}")]
-    public Task Update(Guid id, JobUpdateModel model, CancellationToken token) => model switch
+    public async Task Update(Guid id, JobUpdateModel model, CancellationToken token)
     {
-        {TriggerEventName: not null, TriggerEventMask: not null} =>
-            client.Request(new JobTriggerUpdateCommand(id, model.Name, model.TriggerEventName, model.TriggerEventMask), token),
-        {Action: not null} =>
-            client.Request(new JobActionUpdateCommand(id, model.Name, model.Action), token),
-        _ => throw new MessageContractException("Invalid payload.")
-    };
+        // todo: add optimistic concurrency
+        var job = await client.Request(new JobQuery(id), token);
+        await client.Request(new JobUpdateCommand(id, model.Name, job.Configuration), token);
+    }
 
     /// <summary>
     ///     Deletes existing automation job by <paramref name="id"/>.

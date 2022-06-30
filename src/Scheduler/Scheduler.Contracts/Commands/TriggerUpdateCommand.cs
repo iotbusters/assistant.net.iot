@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Automation run trigger updating command.
 /// </summary>
-public class TriggerUpdateCommand : IMessage
+public sealed class TriggerUpdateCommand : IMessage
 {
     /// <summary/>
     public TriggerUpdateCommand(Guid runId, bool isActive)

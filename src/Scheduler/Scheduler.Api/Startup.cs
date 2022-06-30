@@ -1,4 +1,5 @@
 using Assistant.Net.Messaging;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Options;
 using Assistant.Net.Scheduler.Api.Conventions;
 using Assistant.Net.Scheduler.Api.Handlers;
@@ -35,26 +36,24 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
-            .AddStorage(b => b
+            .AddStorage(GenericOptionsNames.DefaultName, b => b
                 .UseMongo(ConfigureStorage)
-                .AddMongo<Guid, AutomationModel>()
-                .AddMongo<Guid, JobModel>()
-                .AddMongo<Guid, RunModel>()
-                .AddMongo<Guid, TriggerModel>())
-            .AddMongoMessageHandling(b => b
+                .UseMongoSingleProvider()
+                .AddSingle<Guid, AutomationModel>()
+                .AddSingle<Guid, JobModel>()
+                .AddSingle<Guid, RunModel>()
+                .AddSingle<Guid, TriggerModel>())
+            .AddGenericMessageHandling(b => b
                 .UseMongo(ConfigureMessaging)
                 .AddHandler<AutomationHandlers>()
                 .AddHandler<JobHandlers>()
                 .AddHandler<RunHandlers>()
                 .AddHandler<TriggerHandlers>())
-            .AddMessagingClient(b => b
-                .AddHandler<AutomationHandlers>()
-                .AddHandler<JobHandlers>()
-                .AddHandler<RunHandlers>()
-                .AddHandler<TriggerHandlers>()
+            .ConfigureGenericMessagingClient(b => b
                 .UseMongo(ConfigureMessaging)
-                .AddMongo<RunSucceededEvent>()
-                .AddMongo<RunFailedEvent>());
+                .UseMongoSingleProvider()
+                .AddSingle<RunSucceededEvent>()
+                .AddSingle<RunFailedEvent>());
 
         // todo: configure logging, enrich request details, correlation id, machine name, thread...
         //services.AddLogging(b => b.AddConsole());
@@ -82,6 +81,7 @@ public class Startup
         var fileName = Path.GetFileNameWithoutExtension(location);
         services.AddSwaggerGen(o =>
         {
+            o.UseOneOfForPolymorphism();
             o.IncludeXmlComments(Path.Combine(folderPath, fileName + ".xml"), true);
             // todo: implement https://restfulapi.net/hateoas/
             //o.DocumentFilter<HateoasDocumentFilter>();

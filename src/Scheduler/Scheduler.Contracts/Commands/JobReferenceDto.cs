@@ -5,7 +5,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Automation job reference.
 /// </summary>
-public class JobReferenceDto
+public sealed class JobReferenceDto
 {
     /// <summary/>
     public JobReferenceDto(Guid id) =>

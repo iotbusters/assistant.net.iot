@@ -9,19 +9,31 @@ namespace Assistant.Net.Scheduler.Contracts.Events;
 public class TimerTriggeredEvent : IMessage
 {
     /// <summary/>
-    public TimerTriggeredEvent(Guid runId, DateTimeOffset triggered)
+    public TimerTriggeredEvent(Guid runId, DateTimeOffset arranged, DateTimeOffset scheduled, DateTimeOffset triggered)
     {
         RunId = runId;
+        Arranged = arranged;
+        Scheduled = scheduled;
         Triggered = triggered;
     }
 
     /// <summary>
-    ///     Scheduled run ID.
+    ///     Associated run ID.
     /// </summary>
     public Guid RunId { get; set; }
 
     /// <summary>
-    ///     The date when the scheduled run was triggered.
+    ///     The date when the timer was arranged.
+    /// </summary>
+    public DateTimeOffset Arranged { get; }
+
+    /// <summary>
+    ///     The date when the timer was scheduled.
+    /// </summary>
+    public DateTimeOffset Scheduled { get; }
+
+    /// <summary>
+    ///     The date when the timer was triggered.
     /// </summary>
     public DateTimeOffset Triggered { get; }
 }

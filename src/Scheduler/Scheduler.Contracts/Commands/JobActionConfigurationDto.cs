@@ -3,20 +3,16 @@
 namespace Assistant.Net.Scheduler.Contracts.Commands;
 
 /// <summary>
-///     Automation job action creation command.
+///     Action execution strategy configuration.
 /// </summary>
-public class JobActionCreateCommand : JobCreateCommand
+public class JobActionConfigurationDto : JobConfigurationDto
 {
     /// <summary/>
-    public JobActionCreateCommand(
-        string name,
-        IMessage action) : base(name)
-    {
+    public JobActionConfigurationDto(IMessage action) =>
         Action = action;
-    }
 
     /// <summary>
-    ///     Job action message.
+    ///     Action message to request.
     /// </summary>
     public IMessage Action { get; }
 }
