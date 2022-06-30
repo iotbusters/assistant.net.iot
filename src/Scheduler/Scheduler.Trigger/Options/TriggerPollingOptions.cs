@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assistant.Net.DataAnnotations;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Assistant.Net.Scheduler.Trigger.Options;
@@ -9,14 +10,14 @@ namespace Assistant.Net.Scheduler.Trigger.Options;
 public class TriggerPollingOptions
 {
     /// <summary>
-    ///     Wait time between polling.
+    ///     Time to delay between trigger polling.
     /// </summary>
-    [Required]
-    public TimeSpan PollingWait { get; set; } = TimeSpan.FromMinutes(5);
+    [Required, Time("00:00:00.001", "23:59:59")]
+    public TimeSpan InactivityDelayTime { get; set; } = TimeSpan.FromMinutes(5);
 
     /// <summary>
-    ///     Timeout of a polling request.
+    ///     Delay between cancellation was requested and actually called.
     /// </summary>
-    [Required]
-    public TimeSpan PollingTimeout { get; set; } = TimeSpan.FromSeconds(10);
+    [Time("00:00:00", "00:30:00")]
+    public TimeSpan CancellationDelay { get; set; } = TimeSpan.FromSeconds(30);
 }

@@ -11,18 +11,18 @@ namespace Assistant.Net.Scheduler.Trigger.Internal;
 /// <summary>
 ///     Known message type handling configuration options source implementation.
 /// </summary>
-internal class ReloadableOptionsSource : ConfigureOptionsSourceBase<MessagingClientOptions>
+internal class ReloadableMessagingClientOptionsSource : ConfigureOptionsSourceBase<MessagingClientOptions>
 {
-    private readonly ILogger<ReloadableOptionsSource> logger;
-    private Dictionary<Guid, Type> knownMessageTypes = new();
+    private readonly ILogger<ReloadableMessagingClientOptionsSource> logger;
+    private static Dictionary<Guid, Type> knownMessageTypes = new();
 
-    public ReloadableOptionsSource(ILogger<ReloadableOptionsSource> logger) =>
+    public ReloadableMessagingClientOptionsSource(ILogger<ReloadableMessagingClientOptionsSource> logger) =>
         this.logger = logger;
 
     public override void Configure(MessagingClientOptions options)
     {
         options.Handlers.Clear();
-        options.AddGenericHandlers(knownMessageTypes);
+        options.AddTriggerEventHandlers(knownMessageTypes);
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ internal class ReloadableOptionsSource : ConfigureOptionsSourceBase<MessagingCli
     /// <param name="triggerMessageTypes">Known message types to allow their handling.</param>
     public void Reload(Dictionary<Guid, Type> triggerMessageTypes)
     {
-        var unsupportedTypes = triggerMessageTypes.Where(x => !x.Value.IsAssignableTo(typeof(IMessage<None>))).ToArray();
+        var unsupportedTypes = triggerMessageTypes.Where(x => !x.Value.IsAssignableTo(typeof(IMessage<Nothing>))).ToArray();
         if (unsupportedTypes.Any())
         {
             foreach (var unsupportedType in unsupportedTypes)
@@ -41,9 +41,17 @@ internal class ReloadableOptionsSource : ConfigureOptionsSourceBase<MessagingCli
             logger.LogDebug("Found unsupported {MessageTypes} expecting a response.", (object)unsupportedMessageTypes);
         }
 
+        var added = triggerMessageTypes.Values.Except(knownMessageTypes.Values).Distinct();
+        if (added.Any())
+            logger.LogDebug("Start accepting {MessageTypes}.", added);
+
+        var removed = knownMessageTypes.Values.Except(triggerMessageTypes.Values).Distinct();
+        if (removed.Any())
+            logger.LogDebug("Stop accepting {MessageTypes}.", removed);
+
         knownMessageTypes = triggerMessageTypes;
         var messageTypes = triggerMessageTypes.Values.ToArray();
-        logger.LogDebug("Reload {MessageTypes}.", (object)messageTypes);
+        logger.LogDebug("Reloaded accepting {MessageTypes}.", (object)messageTypes);
 
         Reload();
     }

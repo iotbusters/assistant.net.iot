@@ -1,7 +1,13 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Scheduler.Contracts.Commands;
+using Assistant.Net.Scheduler.Contracts.Enums;
+using Assistant.Net.Scheduler.Contracts.Events;
 using Assistant.Net.Scheduler.Contracts.Queries;
+using Assistant.Net.Scheduler.Trigger.Models;
 using Assistant.Net.Scheduler.Trigger.Options;
+using Assistant.Net.Storage.Abstractions;
+using Assistant.Net.Unions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,22 +26,44 @@ internal class TriggerPollingService : BackgroundService
 
     private readonly ILogger logger;
     private readonly IOptionsMonitor<TriggerPollingOptions> options;
-    private readonly ReloadableOptionsSource eventSource;
+    private readonly ReloadableMessagingClientOptionsSource eventSource;
+    private readonly IStorage<Guid, TriggerTimerModel> storage;
     private readonly IMessagingClient client;
+    private readonly ISystemClock clock;
     private readonly ITypeEncoder typeEncoder;
+
+    private readonly CancellationTokenSource gracefulShutdownSource = new();
+    private CancellationTokenRegistration registration;
 
     public TriggerPollingService(
         ILogger<TriggerPollingService> logger,
         IOptionsMonitor<TriggerPollingOptions> options,
-        ReloadableOptionsSource eventSource,
+        ReloadableMessagingClientOptionsSource eventSource,
+        IStorage<Guid, TriggerTimerModel> storage,
         ITypeEncoder typeEncoder,
-        IMessagingClient client)
+        IMessagingClient client,
+        ISystemClock clock)
     {
         this.logger = logger;
         this.options = options;
         this.eventSource = eventSource;
+        this.storage = storage;
         this.typeEncoder = typeEncoder;
         this.client = client;
+        this.clock = clock;
+    }
+
+    public override Task StartAsync(CancellationToken token)
+    {
+        registration = token.Register(() => gracefulShutdownSource.CancelAfter(options.CurrentValue.CancellationDelay));
+        return base.StartAsync(token);
+    }
+
+    public override void Dispose()
+    {
+        registration.Dispose();
+        gracefulShutdownSource.Dispose();
+        base.Dispose();
     }
 
     protected override async Task ExecuteAsync(CancellationToken token)
@@ -44,55 +72,107 @@ internal class TriggerPollingService : BackgroundService
 
         while (!token.IsCancellationRequested)
         {
-            await ReloadAsync(token);
-            await Task.Delay(options.CurrentValue.PollingWait, token);
+            try
+            {
+                await ReloadAsync(gracefulShutdownSource.Token);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                continue;
+            }
+
+            await Task.WhenAny(Task.Delay(options.CurrentValue.InactivityDelayTime, token));
         }
 
         logger.LogInformation("Stop polling triggers resource.");
     }
 
-    public async Task ReloadAsync(CancellationToken systemToken)
+    public async Task ReloadAsync(CancellationToken token)
     {
-        logger.LogDebug("Reloading supported trigger events to handle.");
-
-        var timeoutToken = new CancellationTokenSource(options.CurrentValue.PollingTimeout).Token;
-        var token = CancellationTokenSource.CreateLinkedTokenSource(systemToken, timeoutToken).Token;
+        logger.LogDebug("Reloading triggers to handle.");
 
         var references = await client.Request(new TriggerReferencesQuery(), token);
-        var runIds = references.Select(x => x.RunId).Except(unsupportedRunIds).ToHashSet();
+        var latestRunIds = references.Select(x => x.RunId).Except(unsupportedRunIds).ToHashSet();
 
-        var currentEvents = events;
-        if (runIds.SequenceEqual(currentEvents.Keys))
+        var previousEventTypes = events;
+        var previousRunIds = previousEventTypes.Keys;
+        if (latestRunIds.SequenceEqual(previousRunIds))
+        {
+            logger.LogDebug("No new triggers were found.");
             return;
+        }
 
-        var triggerQueryTasks = runIds.Except(currentEvents.Keys).Select(x => client.Request(new TriggerQuery(x), token)).ToArray();
+        var supportedEventTypes = await GetSupportedEventTypes(latestRunIds, previousRunIds, token);
+        if (!supportedEventTypes.Any())
+            logger.LogWarning("No new trigger events were found.");
+
+        events = (
+                from id in latestRunIds
+                join pet in previousEventTypes on id equals pet.Key into pets
+                join set in supportedEventTypes on id equals set.Key into sets
+                let type = pets.FirstOrDefault().Value ?? sets.FirstOrDefault().Value
+                where type != null
+                select (id, type))
+            .ToDictionary(x => x.id, x => x.type);
+        eventSource.Reload(events);
+
+        logger.LogInformation("Reloaded supported trigger events {TotalEventCount} (+{NewEventCount}/-{OldEventCount}) to handle.",
+            events.Count, supportedEventTypes.Count, Math.Max(0, previousEventTypes.Count - events.Count));
+
+        var timerRunIds = supportedEventTypes.Where(x => x.Value == typeof(TimerTriggeredEvent)).Select(x => x.Key);
+        await ScheduleTimers(timerRunIds, token);
+    }
+
+    private async Task<Dictionary<Guid, Type>> GetSupportedEventTypes(
+        IEnumerable<Guid> latestRunIds,
+        IEnumerable<Guid> previousRunIds,
+        CancellationToken token)
+    {
+        var triggerQueryTasks = latestRunIds
+            .Except(previousRunIds)
+            .Select(x => client.Request(new TriggerQuery(x), token));
         var triggers = await Task.WhenAll(triggerQueryTasks);
 
-        var newEvents = triggers
+        var triggerConfigurations = triggers
             .Select(x => (id: x.RunId, name: x.TriggerEventName, type: typeEncoder.Decode(x.TriggerEventName)))
             .ToArray();
 
-        var unsupportedEvents = newEvents.Where(x => x.type == null).ToArray();
-        foreach (var @event in unsupportedEvents)
+        var unsupportedConfigurations = triggerConfigurations.Where(x => x.type == null).ToArray();
+        foreach (var @event in unsupportedConfigurations)
         {
             unsupportedRunIds.Add(@event.id);
             logger.LogError("Unknown {EventName} ({RunId}) is ignored.", @event.name, @event.id);
         }
 
-        var knownEvents = newEvents.Where(x => x.type != null).ToDictionary(x => x.id, x => x.type!);
-        if (!knownEvents.Any())
-            logger.LogWarning("No new events were found.");
+        return triggerConfigurations.Where(x => x.type != null).ToDictionary(x => x.id, x => x.type!);
+    }
 
-        events = (
-                from id in runIds
-                join kid in knownEvents on id equals kid.Key into kids
-                join cid in currentEvents on id equals cid.Key into cids
-                let type = kids.FirstOrDefault().Value ?? cids.FirstOrDefault().Value
-                where type != null
-                select (id, type))
-            .ToDictionary(x => x.id, x => x.type!);
-        eventSource.Reload(events);
+    private async Task ScheduleTimers(IEnumerable<Guid> timerRunIds, CancellationToken token)
+    {
+        var runQueryTasks = timerRunIds.Select(x => client.Request(new RunQuery(x), token));
+        var runs = await Task.WhenAll(runQueryTasks);
 
-        logger.LogDebug("Reloaded supported trigger events to handle.");
+        var timers = runs
+            .Where(x => x.Status.Value == RunStatus.Started)
+            .Where(x => x.JobSnapshot.Configuration is JobTimerConfigurationDto)
+            .Select(x => (RunId: x.Id, JobId: x.JobSnapshot.Id, Configuration: (JobTimerConfigurationDto) x.JobSnapshot.Configuration))
+            .ToArray();
+
+        foreach (var timer in timers)
+        {
+            if (await storage.TryGet(timer.JobId, token) is not Some<TriggerTimerModel>({IsTriggered : false}))
+                continue;
+
+            await storage.AddOrUpdate(
+                key: timer.JobId,
+                addFactory: _ => new(timer.RunId, timer.Configuration.NextTriggerTime(clock.UtcNow), IsTriggered: false),
+                updateFactory: (_, last) => new(timer.RunId, timer.Configuration.NextTriggerTime(last.Arranged), IsTriggered: false),
+                token);
+        }
+
+        if (timers.Any())
+            logger.LogInformation("Configured {NewTimerCount} to trigger.", timers.Length);
+        else
+            logger.LogDebug("No new trigger timers were found.");
     }
 }
