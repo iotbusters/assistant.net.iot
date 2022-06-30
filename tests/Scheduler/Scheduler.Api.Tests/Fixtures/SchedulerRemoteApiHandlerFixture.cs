@@ -1,5 +1,4 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Messaging.Options;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -8,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures;
 
-public class SchedulerRemoteHandlerFixture : IDisposable
+public class SchedulerRemoteApiHandlerFixture : IDisposable
 {
     private readonly ServiceProvider provider;
     private readonly IHost host;
 
-    public SchedulerRemoteHandlerFixture(ServiceProvider provider, IHost host)
+    public SchedulerRemoteApiHandlerFixture(ServiceProvider provider, IHost host)
     {
         this.provider = provider;
         this.host = host;

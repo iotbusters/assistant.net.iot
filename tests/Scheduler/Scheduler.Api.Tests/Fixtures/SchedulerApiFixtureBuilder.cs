@@ -1,10 +1,12 @@
 ﻿using Assistant.Net.Messaging;
+using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Serialization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using System.Linq;
+using System;
 using System.Net.Http;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures;
@@ -21,12 +23,19 @@ public class SchedulerApiFixtureBuilder
             .ConfigureServices(s =>
             {
                 // disable interceptors
-                s.ConfigureMessagingClient(b => b.ClearInterceptors());
+                s.ConfigureMessagingClient(b => b
+                    .DebuggerTimeout()
+                    .TimeoutIn(TimeSpan.FromSeconds(0.5))
+                    .RemoveInterceptor<CachingInterceptor>()
+                    .RemoveInterceptor<RetryingInterceptor>());
+                s.AddTypeEncoder(o => o
+                    .Exclude("Newtonsoft")
+                    .Exclude("NUnit")
+                    .Exclude("MongoDB")
+                    .Exclude("SharpCompress"));
 
                 // disable MongoDB event handler
-                var serviceDescriptor = s.Single(x =>
-                    x.ServiceType == typeof(IHostedService) && x.ImplementationType?.Name == "MongoMessageHandlingService");
-                s.Remove(serviceDescriptor);
+                s.RemoveAll(typeof(IHostedService));
             }));
     }
 
@@ -41,7 +50,7 @@ public class SchedulerApiFixtureBuilder
         var host = remoteHostBuilder.Start();
         var provider = new ServiceCollection()
             .AddSingleton(new HttpClient(host.GetTestServer().CreateHandler()))
-            .AddSerializer()
+            .AddSerializer(b => b.AddJsonTypeAny())
             .BuildServiceProvider();
         return new SchedulerApiFixture(provider, host);
     }

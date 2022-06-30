@@ -2,15 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>Assistant.Net.Scheduler.Api.Tests</RootNamespace>
-    <AssemblyName>assistant.net.scheduler.api.tests</AssemblyName>
+    <RootNamespace>Assistant.Net.Integration.Tests</RootNamespace>
+    <AssemblyName>assistant.net.integration.tests</AssemblyName>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.messaging.sqlite.client" Version="0.3.128" />
-    <PackageReference Include="assistant.net.messaging.sqlite.server" Version="0.3.128" />
     <PackageReference Include="coverlet.collector" Version="3.1.2">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -29,7 +27,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Scheduler\Scheduler.Api\Scheduler.Api.csproj" />
+    <ProjectReference Include="..\Scheduler\Scheduler.Api.Tests\Scheduler.Api.Tests.csproj" />
+    <ProjectReference Include="..\Scheduler\Scheduler.EventHandler.Tests\Scheduler.EventHandler.Tests.csproj" />
+    <ProjectReference Include="..\Scheduler\Scheduler.Trigger.Tests\Scheduler.Trigger.Tests.csproj" />
   </ItemGroup>
 
 </Project>

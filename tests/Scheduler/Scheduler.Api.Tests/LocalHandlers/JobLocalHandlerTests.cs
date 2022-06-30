@@ -18,17 +18,39 @@ namespace Assistant.Net.Scheduler.Api.Tests.LocalHandlers;
 public class JobLocalHandlerTests
 {
     [Test]
-    public async Task Handle_JobQuery_returnsJob()
+    public async Task Handle_JobQuery_returnsJobWithEventConfiguration()
     {
-        var job = new JobTriggerEventModel(
-            id: Guid.NewGuid(),
-            name: "name",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string>());
-        var storage = new TestStorage<Guid, JobModel> {{job.Id, job}};
-        using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
-        var command = new JobQuery(job.Id);
+        var configuration = new JobEventConfigurationDto(eventName: "Event", eventMask: new Dictionary<string, string>());
+        var job = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Store(job.Id, job).Build();
 
+        var command = new JobQuery(job.Id);
+        var response = await fixture.Handle(command);
+
+        response.Should().BeEquivalentTo(job);
+    }
+
+    [Test]
+    public async Task Handle_JobQuery_returnsJobWithDailyTimerConfiguration()
+    {
+        var configuration = new JobDailyTimerConfigurationDto(time: TimeSpan.FromHours(1));
+        var job = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Store(job.Id, job).Build();
+
+        var command = new JobQuery(job.Id);
+        var response = await fixture.Handle(command);
+
+        response.Should().BeEquivalentTo(job);
+    }
+
+    [Test]
+    public async Task Handle_JobQuery_returnsJobWithStopwatchTimerConfiguration()
+    {
+        var configuration = new JobStopwatchTimerConfigurationDto(time: TimeSpan.FromHours(1));
+        var job = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Store(job.Id, job).Build();
+
+        var command = new JobQuery(job.Id);
         var response = await fixture.Handle(command);
 
         response.Should().BeEquivalentTo(job);
@@ -37,87 +59,121 @@ public class JobLocalHandlerTests
     [Test]
     public async Task Handle_JobQuery_throwsNotFoundException()
     {
-        var job = new JobTriggerEventModel(
-            id: Guid.NewGuid(),
-            name: "name",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string>());
-        var storage = new TestStorage<Guid, JobModel> {{job.Id, job}};
-        using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
-        var command = new JobQuery(UnknownId);
+        var configuration = new JobEventConfigurationDto(eventName: "Event", eventMask: new Dictionary<string, string>());
+        var job = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Store(job.Id, job).Build();
 
+        var command = new JobQuery(id: Guid.NewGuid());
         await fixture.Awaiting(x => x.Handle(command))
             .Should().ThrowAsync<NotFoundException>();
     }
         
     [Test]
-    public async Task Handle_JobCreateCommand_createsJob()
+    public async Task Handle_JobCreateCommand_createsJobWithEventConfiguration()
     {
-        var storage = new TestStorage<Guid, JobModel>();
-        using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
-        var command = new JobTriggerCreateCommand(
-            name: "name",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string>());
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Build();
 
+        var configuration = new JobEventConfigurationDto(eventName: "Event", eventMask: new Dictionary<string, string>());
+        var command = new JobCreateCommand(name: "name", configuration);
         var id = await fixture.Handle(command);
             
-        var value = await storage.GetOrDefault(id);
-        value.Should().BeEquivalentTo(
-            new JobTriggerEventModel(
-                id,
-                command.Name,
-                command.TriggerEventName,
-                command.TriggerEventMask));
+        var value = await fixture.GetOrDefault<Guid, JobModel>(id);
+        value.Should().BeEquivalentTo(new JobModel(id, command.Name, configuration));
     }
 
     [Test]
-    public async Task Handle_JobUpdateCommand_updatesJob()
+    public async Task Handle_JobUpdateCommand_updatesJobWithEventConfiguration()
     {
-        var job = new JobTriggerEventModel(
-            id: Guid.NewGuid(),
-            name: "name",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string>());
-        var storage = new TestStorage<Guid, JobModel> {{job.Id, job}};
-        using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
-        var command = new JobTriggerUpdateCommand(job.Id,
-            name: "another",
-            triggerEventName: nameof(TimerTriggeredEvent),
-            triggerEventMask: new Dictionary<string, string> {{"1", "2"}});
+        var configuration = new JobEventConfigurationDto(
+            eventName: "Event",
+            eventMask: new Dictionary<string, string>());
+        var job = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Store(job.Id, job).Build();
 
+        var newConfiguration = new JobEventConfigurationDto(
+            eventName: nameof(TimerTriggeredEvent),
+            eventMask: new Dictionary<string, string> {{"1", "2"}});
+        var command = new JobUpdateCommand(job.Id, name: "another", newConfiguration);
         await fixture.Handle(command);
 
-        var ids = await storage.GetKeys().AsEnumerableAsync();
-        var id = ids.FirstOrDefault();
-        var value = await storage.GetOrDefault(id);
-        value.Should().BeEquivalentTo(
-            new JobTriggerEventModel(
-                id,
-                command.Name,
-                command.TriggerEventName,
-                command.TriggerEventMask));
+        var value = await fixture.GetOrDefault<Guid, JobModel>(job.Id);
+        value.Should().BeEquivalentTo(new JobModel(job.Id, command.Name, newConfiguration));
+    }
+
+    [Test]
+    public async Task Handle_JobCreateCommand_createsJobWithDailyTimerConfiguration()
+    {
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Build();
+
+        var configuration = new JobDailyTimerConfigurationDto(time: TimeSpan.FromHours(1));
+        var command = new JobCreateCommand(name: "name", configuration);
+        var id = await fixture.Handle(command);
+
+        var value = await fixture.GetOrDefault<Guid, JobModel>(id);
+        value.Should().BeEquivalentTo(new JobModel(id, command.Name, configuration));
+    }
+
+    [Test]
+    public async Task Handle_JobUpdateCommand_updatesJobWithDailyTimerConfiguration()
+    {
+        var configuration = new JobEventConfigurationDto(
+            eventName: "Event",
+            eventMask: new Dictionary<string, string>());
+        var job = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Store(job.Id, job).Build();
+
+        var newConfiguration = new JobDailyTimerConfigurationDto(time: TimeSpan.FromHours(1));
+        var command = new JobUpdateCommand(job.Id, name: "another", newConfiguration);
+        await fixture.Handle(command);
+
+        var value = await fixture.GetOrDefault<Guid, JobModel>(job.Id);
+        value.Should().BeEquivalentTo(new JobModel(job.Id, command.Name, newConfiguration));
+    }
+
+    [Test]
+    public async Task Handle_JobCreateCommand_createsJobWithStopwatchTimerConfiguration()
+    {
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Build();
+
+        var configuration = new JobStopwatchTimerConfigurationDto(time: TimeSpan.FromHours(1));
+        var command = new JobCreateCommand(name: "name", configuration);
+        var id = await fixture.Handle(command);
+
+        var value = await fixture.GetOrDefault<Guid, JobModel>(id);
+        value.Should().BeEquivalentTo(new JobModel(id, command.Name, configuration));
+    }
+
+    [Test]
+    public async Task Handle_JobUpdateCommand_updatesJobWithStopwatchTimerConfiguration()
+    {
+        var configuration = new JobEventConfigurationDto(
+            eventName: "Event",
+            eventMask: new Dictionary<string, string>());
+        var job = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Store(job.Id, job).Build();
+
+        var newConfiguration = new JobStopwatchTimerConfigurationDto(time: TimeSpan.FromHours(1));
+        var command = new JobUpdateCommand(job.Id, name: "another", newConfiguration);
+        await fixture.Handle(command);
+
+        var value = await fixture.GetOrDefault<Guid, JobModel>(job.Id);
+        value.Should().BeEquivalentTo(new JobModel(job.Id, command.Name, newConfiguration));
     }
 
     [Test]
     public async Task Handle_JobUpdateCommand_throwsNotFoundException()
     {
-        var job = new JobTriggerEventModel(
-            id: Guid.NewGuid(),
-            name: "name",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string>());
-        var storage = new TestStorage<Guid, JobModel> {{job.Id, job}};
-        using var fixture = new SchedulerLocalHandlerFixtureBuilder().AddStorage(storage).Build();
-        var command = new JobTriggerUpdateCommand(
-            UnknownId,
-            name: "another",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string> {{"1", "2"}});
+        var configuration = new JobEventConfigurationDto(
+            eventName: "Event",
+            eventMask: new Dictionary<string, string>());
+        var job = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Store(job.Id, job).Build();
 
+        var newConfiguration = new JobEventConfigurationDto(
+            eventName: nameof(TimerTriggeredEvent),
+            eventMask: new Dictionary<string, string> {{"1", "2"}});
+        var command = new JobUpdateCommand(id: Guid.NewGuid(), name: "another", newConfiguration);
         await fixture.Awaiting(x => x.Handle(command))
             .Should().ThrowAsync<NotFoundException>();
     }
-
-    private static Guid UnknownId => Guid.NewGuid();
 }

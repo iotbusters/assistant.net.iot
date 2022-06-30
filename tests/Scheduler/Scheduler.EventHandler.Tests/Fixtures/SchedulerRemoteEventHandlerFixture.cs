@@ -1,17 +1,22 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures;
 
-public class SchedulerLocalHandlerFixture : IDisposable
+public class SchedulerRemoteEventHandlerFixture : IDisposable
 {
     private readonly ServiceProvider provider;
+    private readonly IHost host;
 
-    public SchedulerLocalHandlerFixture(ServiceProvider provider) =>
+    public SchedulerRemoteEventHandlerFixture(ServiceProvider provider, IHost host)
+    {
         this.provider = provider;
+        this.host = host;
+    }
 
     public async Task<TResponse> Handle<TResponse>(IMessage<TResponse> request)
     {
@@ -21,6 +26,9 @@ public class SchedulerLocalHandlerFixture : IDisposable
         return await handler!.Request(request);
     }
 
-    public virtual void Dispose() =>
+    public void Dispose()
+    {
         provider.Dispose();
+        host.Dispose();
+    }
 }

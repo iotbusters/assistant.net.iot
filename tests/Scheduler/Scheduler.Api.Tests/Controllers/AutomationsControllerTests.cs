@@ -80,7 +80,7 @@ public class AutomationsControllerTests
     public async Task Put_automations_id()
     {
         var automationId = Guid.NewGuid();
-        var handler = new TestMessageHandler<AutomationUpdateCommand, None>(_ => new None());
+        var handler = new TestMessageHandler<AutomationUpdateCommand, Nothing>(_ => Nothing.Instance);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
         var command = new AutomationUpdateCommand(automationId, "name", new[] {new JobReferenceDto(id: Guid.NewGuid())});
@@ -103,7 +103,7 @@ public class AutomationsControllerTests
     public async Task Delete_automations_id()
     {
         var automationId = Guid.NewGuid();
-        var handler = new TestMessageHandler<AutomationDeleteCommand, None>(_ => new None());
+        var handler = new TestMessageHandler<AutomationDeleteCommand, Nothing>(_ => Nothing.Instance);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
         var response = await fixture.Delete($"http://localhost/api/automations/{automationId}");

@@ -2,4 +2,4 @@
 
 namespace Assistant.Net.Scheduler.EventHandler.Tests.Mocks;
 
-public record TestMessage : IMessage;
+public record TestEmptyMessage : IMessage;

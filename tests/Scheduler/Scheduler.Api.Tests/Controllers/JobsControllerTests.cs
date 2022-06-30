@@ -17,14 +17,13 @@ namespace Assistant.Net.Scheduler.Api.Tests.Controllers;
 public class JobsControllerTests
 {
     [Test]
-    public async Task Get_jobs_id_JobTriggerModel()
+    public async Task Get_jobs_id_JobEventTriggerModel()
     {
         var jobId = Guid.NewGuid();
-        var job = new JobTriggerEventModel(
-            id: jobId,
-            name: "name",
-            triggerEventName: "event",
-            triggerEventMask: new Dictionary<string, string>());
+        var configuration = new JobEventConfigurationDto(
+            eventName: "Event",
+            eventMask: new Dictionary<string, string>());
+        var job = new JobModel(jobId, name: "name", configuration);
         var handler = new TestMessageHandler<JobQuery, JobModel>(_ => job);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
@@ -34,6 +33,45 @@ public class JobsControllerTests
         {
             StatusCode = HttpStatusCode.OK,
             RequestMessage = new {RequestUri = new Uri($"http://localhost/api/jobs/{jobId}")},
+            Content = fixture.Content(job)
+        });
+        handler.Request.Should().BeEquivalentTo(new JobQuery(jobId));
+    }
+    [Test]
+    public async Task Get_jobs_id_JobDailyTimerTriggerModel()
+    {
+        var jobId = Guid.NewGuid();
+        var configuration = new JobDailyTimerConfigurationDto(time: TimeSpan.FromHours(1));
+        var job = new JobModel(jobId, name: "name", configuration);
+        var handler = new TestMessageHandler<JobQuery, JobModel>(_ => job);
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+
+        var response = await fixture.Get($"http://localhost/api/jobs/{jobId}");
+
+        response.Should().BeEquivalentTo(new
+        {
+            StatusCode = HttpStatusCode.OK,
+            RequestMessage = new { RequestUri = new Uri($"http://localhost/api/jobs/{jobId}") },
+            Content = fixture.Content(job)
+        });
+        handler.Request.Should().BeEquivalentTo(new JobQuery(jobId));
+    }
+
+    [Test]
+    public async Task Get_jobs_id_JobStopwatchTimerTriggerModel()
+    {
+        var jobId = Guid.NewGuid();
+        var configuration = new JobStopwatchTimerConfigurationDto(time: TimeSpan.FromHours(1));
+        var job = new JobModel(jobId, name: "name", configuration);
+        var handler = new TestMessageHandler<JobQuery, JobModel>(_ => job);
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+
+        var response = await fixture.Get($"http://localhost/api/jobs/{jobId}");
+
+        response.Should().BeEquivalentTo(new
+        {
+            StatusCode = HttpStatusCode.OK,
+            RequestMessage = new { RequestUri = new Uri($"http://localhost/api/jobs/{jobId}") },
             Content = fixture.Content(job)
         });
         handler.Request.Should().BeEquivalentTo(new JobQuery(jobId));
@@ -43,10 +81,8 @@ public class JobsControllerTests
     public async Task Get_jobs_id_JobActionModel()
     {
         var jobId = Guid.NewGuid();
-        var job = new JobActionModel(
-            id: jobId,
-            name: "name",
-            action: new TestMessage());
+        var configuration = new JobActionConfigurationDto(new TestEmptyMessage());
+        var job = new JobModel(jobId, name: "name", configuration);
         var handler = new TestMessageHandler<JobQuery, JobModel>(_ => job);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
@@ -62,21 +98,19 @@ public class JobsControllerTests
     }
 
     [Test]
-    public async Task Post_jobs_JobTriggerModel()
+    public async Task Post_jobs_JobEventCreateModel()
     {
         var jobId = Guid.NewGuid();
-        var handler = new TestMessageHandler<JobTriggerCreateCommand, Guid>(_ => jobId);
+        var handler = new TestMessageHandler<JobCreateCommand, Guid>(_ => jobId);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
-        var command = new JobTriggerCreateCommand(
-            name: "name",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string>());
-        var response = await fixture.Post("http://localhost/api/jobs", new JobCreateModel
+        var configuration = new JobEventConfigurationDto(eventName: "Event", eventMask: new Dictionary<string, string>());
+        var command = new JobCreateCommand(name: "name", configuration);
+        var response = await fixture.Post("http://localhost/api/jobs", new JobEventCreateModel
         {
             Name = command.Name,
-            TriggerEventName = command.TriggerEventName,
-            TriggerEventMask = command.TriggerEventMask
+            EventName = configuration.EventName,
+            EventMask = configuration.EventMask
         });
 
         response.Should().BeEquivalentTo(new
@@ -90,19 +124,19 @@ public class JobsControllerTests
     }
 
     [Test]
-    public async Task Post_jobs_JobActionModel()
+    public async Task Post_jobs_JobTimerCreateModel()
     {
         var jobId = Guid.NewGuid();
-        var handler = new TestMessageHandler<JobActionCreateCommand, Guid>(_ => jobId);
+        var handler = new TestMessageHandler<JobCreateCommand, Guid>(_ => jobId);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
-        var command = new JobActionCreateCommand(
-            name: "name",
-            action: new TestMessage());
-        var response = await fixture.Post("http://localhost/api/jobs", new JobCreateModel
+        var configuration = new JobDailyTimerConfigurationDto(time: TimeSpan.FromHours(1));
+        var command = new JobCreateCommand(name: "name", configuration);
+        var response = await fixture.Post("http://localhost/api/jobs", new JobDailyTimerCreateModel
         {
             Name = command.Name,
-            Action = command.Action
+            Time = configuration.Time,
+            Days = configuration.Days
         });
 
         response.Should().BeEquivalentTo(new
@@ -116,49 +150,43 @@ public class JobsControllerTests
     }
 
     [Test]
-    public async Task Put_jobs_id_JobTriggerModel()
+    public async Task Post_jobs_JobActionCreateModel()
     {
         var jobId = Guid.NewGuid();
-        var handler = new TestMessageHandler<JobTriggerUpdateCommand, None>(_ => new None());
+        var handler = new TestMessageHandler<JobCreateCommand, Guid>(_ => jobId);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
-        var command = new JobTriggerUpdateCommand(
-            id: jobId,
-            name: "name",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string>());
-        var response = await fixture.Put($"http://localhost/api/jobs/{jobId}", new JobUpdateModel
+        var configuration = new JobActionConfigurationDto(new TestEmptyMessage());
+        var command = new JobCreateCommand(name: "name", configuration);
+        var response = await fixture.Post("http://localhost/api/jobs", new JobActionCreateModel
         {
             Name = command.Name,
-            TriggerEventName = command.TriggerEventName,
-            TriggerEventMask = command.TriggerEventMask
+            Action = configuration.Action
         });
 
         response.Should().BeEquivalentTo(new
         {
-            StatusCode = HttpStatusCode.NoContent,
-            RequestMessage = new { RequestUri = new Uri($"http://localhost/api/jobs/{jobId}") },
-            Content = fixture.NoContent()
+            StatusCode = HttpStatusCode.Created,
+            RequestMessage = new {RequestUri = new Uri("http://localhost/api/jobs")},
+            Headers = new {Location = new Uri($"http://localhost/api/jobs/{jobId}")},
+            Content = fixture.CreatedContent()
         });
         handler.Request.Should().BeEquivalentTo(command);
     }
 
     [Test]
-    public async Task Put_jobs_id_JobActionModel()
+    public async Task Put_jobs_id_JobUpdateModel()
     {
         var jobId = Guid.NewGuid();
-        var handler = new TestMessageHandler<JobActionUpdateCommand, None>(_ => new None());
-        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
+        var configuration = new JobActionConfigurationDto(new TestEmptyMessage());
+        var job = new JobModel(jobId, name: "name", configuration);
+        var handler1 = new TestMessageHandler<JobQuery, JobModel>(_ => job);
+        var handler2 = new TestMessageHandler<JobUpdateCommand, Nothing>(_ => Nothing.Instance);
+        using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler1).ReplaceApiHandler(handler2).Build();
 
-        var command = new JobActionUpdateCommand(
-            id: jobId,
-            name: "name",
-            action: new TestMessage());
-        var response = await fixture.Put($"http://localhost/api/jobs/{jobId}", new JobUpdateModel
-        {
-            Name = command.Name,
-            Action = command.Action
-        });
+        var newConfiguration = new JobEventConfigurationDto(eventName: "Event", eventMask: new Dictionary<string, string>());
+        var command = new JobUpdateCommand(jobId, name: "name", newConfiguration);
+        var response = await fixture.Put($"http://localhost/api/jobs/{jobId}", new JobUpdateModel {Name = command.Name});
 
         response.Should().BeEquivalentTo(new
         {
@@ -166,14 +194,15 @@ public class JobsControllerTests
             RequestMessage = new { RequestUri = new Uri($"http://localhost/api/jobs/{jobId}") },
             Content = fixture.NoContent()
         });
-        handler.Request.Should().BeEquivalentTo(command);
+        handler1.Request.Should().BeEquivalentTo(new JobQuery(jobId));
+        handler2.Request.Should().BeEquivalentTo(command);
     }
 
     [Test]
     public async Task Delete_jobs_id()
     {
         var jobId = Guid.NewGuid();
-        var handler = new TestMessageHandler<JobDeleteCommand, None>(_ => new None());
+        var handler = new TestMessageHandler<JobDeleteCommand, Nothing>(_ => Nothing.Instance);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
         var response = await fixture.Delete($"http://localhost/api/jobs/{jobId}");

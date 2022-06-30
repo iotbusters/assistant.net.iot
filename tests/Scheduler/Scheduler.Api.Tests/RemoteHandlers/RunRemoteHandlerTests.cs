@@ -23,15 +23,16 @@ public class RunRemoteHandlerTests
             id: Guid.NewGuid(),
             nextRunId: Guid.NewGuid(),
             automationId: Guid.NewGuid(),
-            jobSnapshot: new JobTriggerEventModel(
+            jobSnapshot: new JobModel(
                 id: Guid.NewGuid(),
                 name: "name",
-                triggerEventName: "Event",
-                triggerEventMask: new Dictionary<string, string>()));
+                new JobEventConfigurationDto(
+                    eventName: "Event",
+                    eventMask: new Dictionary<string, string>())));
         var handler = new TestMessageHandler<RunQuery, RunModel>(run);
-        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-            .ReplaceMongoHandler(handler)
+        using var fixture = new SchedulerRemoteApiHandlerFixtureBuilder()
+            .UseSqlite(SetupSqlite.ConnectionString)
+            .ReplaceHandler(handler)
             .Build();
 
         var query = new RunQuery(run.Id);
@@ -46,9 +47,9 @@ public class RunRemoteHandlerTests
     {
         var runId = Guid.NewGuid();
         var handler = new TestMessageHandler<RunCreateCommand, Guid>(response: runId);
-        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-            .ReplaceMongoHandler(handler)
+        using var fixture = new SchedulerRemoteApiHandlerFixtureBuilder()
+            .UseSqlite(SetupSqlite.ConnectionString)
+            .ReplaceHandler(handler)
             .Build();
 
         var command = new RunCreateCommand(automationId: Guid.NewGuid());
@@ -61,10 +62,10 @@ public class RunRemoteHandlerTests
     [Test]
     public async Task Handle_RunUpdateCommand_delegatesCommand()
     {
-        var handler = new TestMessageHandler<RunUpdateCommand, None>(new None());
-        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-            .ReplaceMongoHandler(handler)
+        var handler = new TestMessageHandler<RunUpdateCommand, Nothing>(Nothing.Instance);
+        using var fixture = new SchedulerRemoteApiHandlerFixtureBuilder()
+            .UseSqlite(SetupSqlite.ConnectionString)
+            .ReplaceHandler(handler)
             .Build();
 
         var command = new RunUpdateCommand(id: Guid.NewGuid(), new RunStatusDto(RunStatus.Started, "message"));
@@ -76,10 +77,10 @@ public class RunRemoteHandlerTests
     [Test]
     public async Task Handle_RunDeleteCommand_delegatesCommand()
     {
-        var handler = new TestMessageHandler<RunDeleteCommand, None>(new None());
-        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-            .ReplaceMongoHandler(handler)
+        var handler = new TestMessageHandler<RunDeleteCommand, Nothing>(Nothing.Instance);
+        using var fixture = new SchedulerRemoteApiHandlerFixtureBuilder()
+            .UseSqlite(SetupSqlite.ConnectionString)
+            .ReplaceHandler(handler)
             .Build();
 
         var command = new RunDeleteCommand(id: Guid.NewGuid());

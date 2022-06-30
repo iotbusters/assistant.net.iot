@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Events;
+using Assistant.Net.Scheduler.Contracts.Exceptions;
 using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using Assistant.Net.Scheduler.EventHandler.Tests.Fixtures;
@@ -18,9 +19,9 @@ public class RunSucceededEventHandlerTests
     public async Task Handle_RunSucceededEvent_requestsRunQueryAndRunCreateCommand()
     {
         var run = HasRunTrigger(runId: Guid.NewGuid(), nextRunId: null);
-        var handler1 = new TestMessageHandler<RunQuery, RunModel>(run);
-        var handler2 = new TestMessageHandler<RunCreateCommand, Guid>(Guid.NewGuid());
-        using var fixture = new SchedulerLocalHandlerFixtureBuilder()
+        var handler1 = new TestEmptyMessageHandler<RunQuery, RunModel>(run);
+        var handler2 = new TestEmptyMessageHandler<RunCreateCommand, Guid>(Guid.NewGuid());
+        using var fixture = new SchedulerLocalEventHandlerFixtureBuilder()
             .ReplaceHandler(handler1)
             .ReplaceHandler(handler2)
             .Build();
@@ -35,13 +36,13 @@ public class RunSucceededEventHandlerTests
     public async Task Handle_RunSucceededEvent_requestsRunQuery()
     {
         var run = HasRunTrigger(runId: Guid.NewGuid(), nextRunId: Guid.NewGuid());
-        var handler1 = new TestMessageHandler<RunQuery, RunModel>(x =>
+        var handler1 = new TestEmptyMessageHandler<RunQuery, RunModel>(x =>
         {
             if (x.Id == run.Id) return run;
-            throw new Exception();
+            throw new NotFoundException();
         });
-        var handler2 = new TestMessageHandler<RunCreateCommand, Guid>(Guid.NewGuid());
-        using var fixture = new SchedulerLocalHandlerFixtureBuilder()
+        var handler2 = new TestEmptyMessageHandler<RunCreateCommand, Guid>(response: Guid.NewGuid());
+        using var fixture = new SchedulerLocalEventHandlerFixtureBuilder()
             .ReplaceHandler(handler1)
             .ReplaceHandler(handler2)
             .Build();
@@ -56,18 +57,10 @@ public class RunSucceededEventHandlerTests
         runId,
         nextRunId,
         automationId: Guid.NewGuid(),
-        jobSnapshot: new JobTriggerEventModel(
+        jobSnapshot: new JobModel(
             id: Guid.NewGuid(),
             name: "name",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string>()));
-
-    private static RunModel HasRunAction(Guid runId, Guid? nextRunId = null) => new(
-        runId,
-        nextRunId,
-        automationId: Guid.NewGuid(),
-        jobSnapshot: new JobActionModel(
-            id: Guid.NewGuid(),
-            name: "name",
-            action: new TestMessage()));
+            new JobEventConfigurationDto(
+                eventName: "Event",
+                eventMask: new Dictionary<string, string>())));
 }

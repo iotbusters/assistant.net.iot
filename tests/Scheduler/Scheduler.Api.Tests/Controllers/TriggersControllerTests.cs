@@ -18,7 +18,7 @@ public class TriggersControllerTests
     {
         var runId = Guid.NewGuid();
         var triggers = new[] {new TriggerReferenceModel(runId)};
-        var handler = new TestMessageHandler<TriggerReferencesQuery, TriggerReferenceModel[]>(triggers);
+        var handler = new TestMessageHandler<TriggerReferencesQuery, IEnumerable<TriggerReferenceModel>>(triggers);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
         var response = await fixture.Get("http://localhost/api/triggers");

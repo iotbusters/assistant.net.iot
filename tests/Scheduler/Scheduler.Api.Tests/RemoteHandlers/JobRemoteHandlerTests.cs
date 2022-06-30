@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Scheduler.Api.Tests.Fixtures;
 using Assistant.Net.Scheduler.Api.Tests.Mocks;
+using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using FluentAssertions;
@@ -16,15 +17,16 @@ public class JobRemoteHandlerTests
     [Test]
     public async Task Handle_JobQuery_delegatesQueryAndReturnsJobModel()
     {
-        var job = new JobTriggerEventModel(
+        var job = new JobModel(
             id: Guid.NewGuid(),
             name: "name",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string>());
+            new JobEventConfigurationDto(
+                eventName: "Event",
+                eventMask: new Dictionary<string, string>()));
         var handler = new TestMessageHandler<JobQuery, JobModel>(job);
-        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-            .ReplaceMongoHandler(handler)
+        using var fixture = new SchedulerRemoteApiHandlerFixtureBuilder()
+            .UseSqlite(SetupSqlite.ConnectionString)
+            .ReplaceHandler(handler)
             .Build();
 
         var query = new JobQuery(job.Id);

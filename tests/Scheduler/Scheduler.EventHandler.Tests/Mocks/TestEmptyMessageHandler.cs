@@ -6,18 +6,18 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.EventHandler.Tests.Mocks;
 
-internal class TestMessageHandler<TRequest, TResponse> : IMessageHandler<TRequest, TResponse>
+internal class TestEmptyMessageHandler<TRequest, TResponse> : IMessageHandler<TRequest, TResponse>
     where TRequest : class, IMessage<TResponse>
 {
     private readonly Func<TRequest, Task<TResponse>> handle;
 
-    public TestMessageHandler(TResponse response)
+    public TestEmptyMessageHandler(TResponse response)
         : this(_ => Task.FromResult(response)) { }
 
-    public TestMessageHandler(Func<TRequest, TResponse> handle)
+    public TestEmptyMessageHandler(Func<TRequest, TResponse> handle)
         : this(x => Task.FromResult(handle(x))) { }
 
-    public TestMessageHandler(Func<TRequest, Task<TResponse>> handle) =>
+    public TestEmptyMessageHandler(Func<TRequest, Task<TResponse>> handle) =>
         this.handle = handle;
 
     public IList<TRequest> Requests { get; private set; } = new List<TRequest>();

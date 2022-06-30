@@ -21,11 +21,12 @@ public class RunsControllerTests
     public async Task Get_Runs_id()
     {
         var runId = Guid.NewGuid();
-        var snapshot = new JobTriggerEventModel(
+        var snapshot = new JobModel(
             id: Guid.NewGuid(),
             name: "name",
-            triggerEventName: "Event",
-            triggerEventMask: new Dictionary<string, string>());
+            new JobEventConfigurationDto(
+                eventName: "Event",
+                eventMask: new Dictionary<string, string>()));
         var run = new RunModel(runId, nextRunId: Guid.NewGuid(), automationId: Guid.NewGuid(), snapshot);
         var handler = new TestMessageHandler<RunQuery, RunModel>(_ => run);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
@@ -68,7 +69,7 @@ public class RunsControllerTests
     public async Task Put_Runs_id()
     {
         var runId = Guid.NewGuid();
-        var handler = new TestMessageHandler<RunUpdateCommand, None>(_ => new None());
+        var handler = new TestMessageHandler<RunUpdateCommand, Nothing>(_ => Nothing.Instance);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
         var command = new RunUpdateCommand(runId, new RunStatusDto(RunStatus.Started, "message"));
@@ -90,7 +91,7 @@ public class RunsControllerTests
     public async Task Delete_Runs_id()
     {
         var runId = Guid.NewGuid();
-        var handler = new TestMessageHandler<RunDeleteCommand, None>(_ => new None());
+        var handler = new TestMessageHandler<RunDeleteCommand, Nothing>(_ => Nothing.Instance);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
         var response = await fixture.Delete($"http://localhost/api/runs/{runId}");

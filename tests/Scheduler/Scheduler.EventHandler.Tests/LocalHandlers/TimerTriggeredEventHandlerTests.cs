@@ -19,24 +19,27 @@ public class TimerTriggeredEventHandlerTests
     [Test]
     public async Task Handle_TimerTriggeredEvent_requestsRunQueryAndRunUpdateCommand()
     {
+        var arranged = DateTimeOffset.UtcNow;
+        var scheduled = DateTimeOffset.UtcNow;
         var triggered = DateTimeOffset.UtcNow;
         var run = new RunModel(
             id: Guid.NewGuid(),
             nextRunId: Guid.NewGuid(),
             automationId: Guid.NewGuid(),
-            jobSnapshot: new JobTriggerEventModel(
+            jobSnapshot: new JobModel(
                 id: Guid.NewGuid(),
                 name: "name",
-                triggerEventName: "Event",
-                triggerEventMask: new Dictionary<string, string>()));
-        var handler1 = new TestMessageHandler<RunQuery, RunModel>(run);
-        var handler2 = new TestMessageHandler<RunUpdateCommand, None>(new None());
-        using var fixture = new SchedulerLocalHandlerFixtureBuilder()
+                new JobEventConfigurationDto(
+                    eventName: "Event",
+                    eventMask: new Dictionary<string, string>())));
+        var handler1 = new TestEmptyMessageHandler<RunQuery, RunModel>(run);
+        var handler2 = new TestEmptyMessageHandler<RunUpdateCommand, Nothing>(Nothing.Instance);
+        using var fixture = new SchedulerLocalEventHandlerFixtureBuilder()
             .ReplaceHandler(handler1)
             .ReplaceHandler(handler2)
             .Build();
         
-        await fixture.Handle(new TimerTriggeredEvent(run.Id, triggered));
+        await fixture.Handle(new TimerTriggeredEvent(run.Id, arranged, scheduled, triggered));
 
         handler1.Requests.Should().BeEquivalentTo(new[] {new RunQuery(run.Id)});
         handler2.Requests.Should().BeEquivalentTo(new[]

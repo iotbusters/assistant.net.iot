@@ -11,13 +11,14 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Scheduler.Trigger.Tests.Mocks;
 
 public class TestTriggerQueriesHandler :
-    IMessageHandler<TriggerReferencesQuery, TriggerReferenceModel[]>,
+    IMessageHandler<TriggerReferencesQuery, IEnumerable<TriggerReferenceModel>>,
     IMessageHandler<TriggerQuery, TriggerModel>
 {
     private readonly Dictionary<Guid, TriggerModel> triggers = new();
 
-    public Task<TriggerReferenceModel[]> Handle(TriggerReferencesQuery message, CancellationToken token) =>
-        Task.FromResult(triggers.Values.Select(x => new TriggerReferenceModel(x.RunId)).ToArray());
+    public Task<IEnumerable<TriggerReferenceModel>> Handle(TriggerReferencesQuery message, CancellationToken token) =>
+        Task.FromResult<IEnumerable<TriggerReferenceModel>>(
+            triggers.Values.Select(x => new TriggerReferenceModel(x.RunId)).ToArray());
 
     public Task<TriggerModel> Handle(TriggerQuery message, CancellationToken token)
     {

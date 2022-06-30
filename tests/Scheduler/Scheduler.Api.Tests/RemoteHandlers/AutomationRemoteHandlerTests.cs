@@ -21,9 +21,9 @@ public class AutomationRemoteHandlerTests
             name: "name",
             jobs: new[] {new AutomationJobReferenceModel(id: Guid.NewGuid())});
         var handler = new TestMessageHandler<AutomationQuery, AutomationModel>(automation);
-        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-            .ReplaceMongoHandler(handler)
+        using var fixture = new SchedulerRemoteApiHandlerFixtureBuilder()
+            .UseSqlite(SetupSqlite.ConnectionString)
+            .ReplaceHandler(handler)
             .Build();
 
         var query = new AutomationQuery(automation.Id);
@@ -38,9 +38,9 @@ public class AutomationRemoteHandlerTests
     {
         var automations = new[] {new AutomationReferenceModel(id: Guid.NewGuid())};
         var handler = new TestMessageHandler<AutomationReferencesQuery, IEnumerable<AutomationReferenceModel>>(automations);
-        using var fixture = new SchedulerRemoteHandlerFixtureBuilder()
-            .UseMongo(SetupMongo.ConnectionString, SetupMongo.Database)
-            .ReplaceMongoHandler(handler)
+        using var fixture = new SchedulerRemoteApiHandlerFixtureBuilder()
+            .UseSqlite(SetupSqlite.ConnectionString)
+            .ReplaceHandler(handler)
             .Build();
 
         var query = new AutomationReferencesQuery();
