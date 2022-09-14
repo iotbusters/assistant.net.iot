@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Models;
 /// <summary>
 ///     Automation job reference model.
 /// </summary>
-public class AutomationJobReferenceModel
+public sealed class AutomationJobReferenceModel
 {
     /// <summary/>
     public AutomationJobReferenceModel(Guid id) =>

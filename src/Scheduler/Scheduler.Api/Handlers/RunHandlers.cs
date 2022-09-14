@@ -1,4 +1,5 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Exceptions;
 using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Enums;
 using Assistant.Net.Scheduler.Contracts.Events;
@@ -17,17 +18,20 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Handlers;
 
-internal class RunHandlers :
+internal sealed class RunHandlers :
     IMessageHandler<RunQuery, RunModel>,
     IMessageHandler<RunCreateCommand, Guid>,
-    IMessageHandler<RunUpdateCommand>,
+    IMessageHandler<RunStartCommand>,
+    IMessageHandler<RunSucceedCommand>,
+    IMessageHandler<RunFailCommand>,
     IMessageHandler<RunDeleteCommand>
 {
     private readonly ILogger<RunHandlers> logger;
     private readonly IMessagingClient client;
     private readonly IAdminStorage<Guid, RunModel> storage;
 
-    public RunHandlers(ILogger<RunHandlers> logger,
+    public RunHandlers(
+        ILogger<RunHandlers> logger,
         IAdminStorage<Guid, RunModel> storage,
         IMessagingClient client)
     {
@@ -41,6 +45,8 @@ internal class RunHandlers :
 
     public async Task<Guid> Handle(RunCreateCommand command, CancellationToken token)
     {
+        logger.LogDebug("Run(new) creating: begins.");
+
         var automation = await client.Request(new AutomationQuery(command.AutomationId), token);
         if (!automation.Jobs.Any())
             throw new InvalidRequestException("Automation doesn't have any jobs.");
@@ -58,14 +64,16 @@ internal class RunHandlers :
 
         await Task.WhenAll(runs.Select(x => storage.AddOrGet(x.Id, x, token)));
 
-        var started = new RunStatusDto(RunStatus.Started);
-        await client.Request(new RunUpdateCommand(runId, started), token);
+        await client.Request(new RunStartCommand(runId), token);
 
+        logger.LogInformation("Run({RunId}) creating: ends.", runId);
         return runId;
     }
 
-    public async Task Handle(RunUpdateCommand command, CancellationToken token)
+    public async Task Handle(RunStartCommand command, CancellationToken token)
     {
+        logger.LogDebug("Run({RunId}) starting: begins.", command.Id);
+
         try
         {
             await storage.AddOrUpdate(
@@ -73,19 +81,126 @@ internal class RunHandlers :
                 addFactory: _ => throw new NotFoundException(),
                 updateFactory: async (_, old) =>
                 {
-                    var run = old.WithStatus(command.Status);
-                    await Update(run, token);
-                    return run;
+                    var run = old.WithStatus(RunStatus.Started);
+                    switch (run.JobSnapshot.Configuration)
+                    {
+                        case JobEventConfigurationDto:
+                        case JobTimerConfigurationDto:
+                            await client.Request(new TriggerCreateCommand(run.Id), token);
+                            return run;
+
+                        case JobActionConfigurationDto dto:
+                            try
+                            {
+                                await client.Request(dto.Action, token);
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogError(ex, "Run({AutomationId}, {RunId}) starting: action failed.", run.AutomationId, run.Id);
+                                // todo
+                                await client.Publish(new RunFailedEvent(run.Id), token);
+                                return run;
+                            }
+
+                            await client.Publish(new RunSucceededEvent(run.Id), token);
+                            return run;
+
+                        default:
+                            var jobConfigurationType = run.JobSnapshot.Configuration.GetType();
+                            throw new MessageFailedException(
+                                $"Run({run.AutomationId}, {run.Id}) starting: job type {jobConfigurationType} isn't supported.");
+                    }
                 }, token);
         }
-        catch (StorageException ex) when(ex.InnerException is NotFoundException nfe)
+        catch (StorageException ex) when(ex.InnerException is MessageException me)
         {
-            throw nfe;
+            logger.LogCritical(me, "Run({RunId}) starting: failed.", command.Id);
+            me.Throw();
         }
+
+        logger.LogInformation("Run({RunId}) starting: ends.", command.Id);
+    }
+
+    public async Task Handle(RunSucceedCommand command, CancellationToken token)
+    {
+        logger.LogDebug("Run({RunId}) succeeding: begins.", command.Id);
+
+        try
+        {
+            await storage.AddOrUpdate(
+                command.Id,
+                addFactory: _ => throw new NotFoundException(),
+                updateFactory: async (_, old) =>
+                {
+                    var run = old.WithStatus(RunStatus.Succeeded);
+                    switch (run.JobSnapshot.Configuration)
+                    {
+                        case JobEventConfigurationDto:
+                        case JobTimerConfigurationDto:
+                            await client.Request(new TriggerDeactivateCommand(run.Id), token);
+                            await client.Publish(new RunSucceededEvent(run.Id), token);
+                            return run;
+
+                        case JobActionConfigurationDto:
+                            await client.Publish(new RunSucceededEvent(run.Id), token);
+                            return run;
+
+                        default:
+                            throw new MessageFailedException($"Run({run.AutomationId}, {run.Id}) succeeding: job type isn't supported.");
+                    }
+                }, token);
+        }
+        catch (StorageException ex) when (ex.InnerException is MessageException me)
+        {
+            logger.LogCritical(me, "Run({RunId}) succeeding: failed.", command.Id);
+            me.Throw();
+        }
+
+        logger.LogInformation("Run({RunId}) succeeding: ends.", command.Id);
+    }
+
+    public async Task Handle(RunFailCommand command, CancellationToken token)
+    {
+        logger.LogDebug("Run({RunId}) failing: begins.", command.Id);
+
+        try
+        {
+            await storage.AddOrUpdate(
+                command.Id,
+                addFactory: _ => throw new NotFoundException(),
+                updateFactory: async (_, old) =>
+                {
+                    var run = old.WithStatus(RunStatus.Failed);
+                    switch (run.JobSnapshot.Configuration)
+                    {
+                        case JobEventConfigurationDto:
+                        case JobTimerConfigurationDto:
+                            await client.Request(new TriggerDeactivateCommand(run.Id), token);
+                            await client.Publish(new RunFailedEvent(run.Id), token);
+                            return run;
+
+                        case JobActionConfigurationDto:
+                            await client.Publish(new RunFailedEvent(run.Id), token);
+                            return run;
+
+                        default:
+                            throw new MessageFailedException($"Run({run.AutomationId}, {run.Id}) failing: job type isn't supported.");
+                    }
+                }, token);
+        }
+        catch (StorageException ex) when(ex.InnerException is MessageException me)
+        {
+            logger.LogCritical(me, "Run({RunId}) updating: not found.", command.Id);
+            me.Throw();
+        }
+
+        logger.LogInformation("Run({RunId}) failing: ends.", command.Id);
     }
 
     public async Task Handle(RunDeleteCommand command, CancellationToken token)
     {
+        logger.LogDebug("Run({RunId}) deleting: begins.", command.Id);
+
         var runId = command.Id;
         var stack = new Stack<RunModel>();
         while (await storage.TryGet(runId, token) is Some<RunModel>({NextRunId : not null} run))
@@ -101,51 +216,7 @@ internal class RunHandlers :
 
             await storage.TryRemove(run.Id, token);
         }
-    }
 
-    private async Task Update(RunModel run, CancellationToken token)
-    {
-        switch (run)
-        {
-            case {JobSnapshot.Configuration: JobEventConfigurationDto, Status.Value: RunStatus.Started}:
-            case {JobSnapshot.Configuration: JobTimerConfigurationDto, Status.Value: RunStatus.Started}:
-                await client.Request(new TriggerCreateCommand(run.Id), token);
-                break;
-
-            case {JobSnapshot.Configuration: JobEventConfigurationDto, Status.Value: RunStatus.Succeeded}:
-            case {JobSnapshot.Configuration: JobTimerConfigurationDto, Status.Value: RunStatus.Succeeded}:
-                await client.Request(new TriggerUpdateCommand(run.Id, isActive: false), token);
-                await client.Publish(new RunSucceededEvent(run.Id), token);
-                break;
-
-            case {JobSnapshot.Configuration: JobEventConfigurationDto, Status.Value: RunStatus.Failed}:
-            case {JobSnapshot.Configuration: JobTimerConfigurationDto, Status.Value: RunStatus.Failed}:
-                await client.Request(new TriggerUpdateCommand(run.Id, isActive: false), token);
-                await client.Publish(new RunFailedEvent(run.Id), token);
-                break;
-
-            case {JobSnapshot.Configuration: JobActionConfigurationDto dto, Status.Value: RunStatus.Started}:
-                try
-                {
-                    await client.Request(dto.Action, token);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogError(ex, "Run({AutomationId}/{RunId}): failed.", run.AutomationId, run.Id);
-                    await client.Publish(new RunFailedEvent(run.Id), token);
-                    break;
-                }
-
-                await client.Publish(new RunSucceededEvent(run.Id), token);
-                break;
-
-            case {JobSnapshot.Configuration: JobActionConfigurationDto, Status.Value: RunStatus.Succeeded}:
-                await client.Publish(new RunSucceededEvent(run.Id), token);
-                break;
-
-            case {JobSnapshot.Configuration: JobActionConfigurationDto, Status.Value: RunStatus.Failed}:
-                await client.Publish(new RunFailedEvent(run.Id), token);
-                break;
-        }
+        logger.LogInformation("Run({RunId}) failing: ends.", command.Id);
     }
 }

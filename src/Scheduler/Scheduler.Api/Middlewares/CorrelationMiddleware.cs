@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Middlewares;
 
-internal class CorrelationMiddleware : IMiddleware
+internal sealed class CorrelationMiddleware : IMiddleware
 {
     public Task InvokeAsync(HttpContext context, RequestDelegate next)
     {

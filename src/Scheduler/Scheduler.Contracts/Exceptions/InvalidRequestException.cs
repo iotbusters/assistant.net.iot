@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Exceptions;
 /// <summary>
 ///     Requested operation was invalid.
 /// </summary>
-public class InvalidRequestException : MessageException
+public sealed class InvalidRequestException : MessageException
 {
     /// <summary/>
     public InvalidRequestException() : base("Requested operation was invalid.") { }

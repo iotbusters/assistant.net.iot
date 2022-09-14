@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Api.Models;
 /// <summary>
 ///     Automation update model.
 /// </summary>
-public class AutomationUpdateModel
+public sealed class AutomationUpdateModel
 {
     /// <summary>
     ///     Name.

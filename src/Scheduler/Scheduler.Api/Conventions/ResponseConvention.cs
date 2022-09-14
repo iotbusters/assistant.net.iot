@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Assistant.Net.Scheduler.Api.Conventions;
 
-internal class ResponseConvention : IActionModelConvention
+internal sealed class ResponseConvention : IActionModelConvention
 {
     public void Apply(ActionModel action)
     {

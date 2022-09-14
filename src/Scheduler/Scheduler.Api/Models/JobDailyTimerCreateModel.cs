@@ -5,7 +5,7 @@ namespace Assistant.Net.Scheduler.Api.Models;
 /// <summary>
 ///     Automation job daily timer create model.
 /// </summary>
-public class JobDailyTimerCreateModel : JobCreateModel
+public sealed class JobDailyTimerCreateModel : JobCreateModel
 {
     /// <summary>
     ///     Time to trigger.

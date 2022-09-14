@@ -5,7 +5,7 @@ namespace Assistant.Net.Scheduler.Api.Models;
 /// <summary>
 ///     Automation job trigger event create model.
 /// </summary>
-public class JobEventCreateModel : JobCreateModel
+public sealed class JobEventCreateModel : JobCreateModel
 {
     /// <summary>
     ///     Triggered event name.

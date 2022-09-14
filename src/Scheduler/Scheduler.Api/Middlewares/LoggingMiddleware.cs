@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Middlewares;
 
-internal class LoggingMiddleware : IMiddleware
+internal sealed class LoggingMiddleware : IMiddleware
 {
     private readonly ILogger logger;
 

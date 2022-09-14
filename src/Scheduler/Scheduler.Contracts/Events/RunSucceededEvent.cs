@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Events;
 /// <summary>
 ///     The run has been successfully completed event.
 /// </summary>
-public class RunSucceededEvent : IMessage
+public sealed class RunSucceededEvent : IMessage
 {
     /// <summary/>
     public RunSucceededEvent(Guid runId) =>

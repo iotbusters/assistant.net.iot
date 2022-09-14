@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Models;
 /// <summary>
 ///     Automation run trigger reference model.
 /// </summary>
-public class TriggerReferenceModel
+public sealed class TriggerReferenceModel
 {
     /// <summary/>
     public TriggerReferenceModel(Guid runId) =>

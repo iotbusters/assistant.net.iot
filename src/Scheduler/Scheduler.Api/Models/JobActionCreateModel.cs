@@ -5,7 +5,7 @@ namespace Assistant.Net.Scheduler.Api.Models;
 /// <summary>
 ///     Automation job action request create model.
 /// </summary>
-public class JobActionCreateModel : JobCreateModel
+public sealed class JobActionCreateModel : JobCreateModel
 {
     /// <summary>
     ///     Action message to request.

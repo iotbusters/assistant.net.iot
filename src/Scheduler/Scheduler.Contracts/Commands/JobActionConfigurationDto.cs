@@ -5,7 +5,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Action execution strategy configuration.
 /// </summary>
-public class JobActionConfigurationDto : JobConfigurationDto
+public sealed class JobActionConfigurationDto : JobConfigurationDto
 {
     /// <summary/>
     public JobActionConfigurationDto(IMessage action) =>

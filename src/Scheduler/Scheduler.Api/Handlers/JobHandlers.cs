@@ -5,22 +5,29 @@ using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Handlers;
 
-internal class JobHandlers :
+internal sealed class JobHandlers :
     IMessageHandler<JobQuery, JobModel>,
     IMessageHandler<JobCreateCommand, Guid>,
     IMessageHandler<JobUpdateCommand>,
     IMessageHandler<JobDeleteCommand>
 {
+    private readonly ILogger<JobHandlers> logger;
     private readonly IAdminStorage<Guid, JobModel> storage;
 
-    public JobHandlers(IAdminStorage<Guid, JobModel> storage) =>
+    public JobHandlers(
+        ILogger<JobHandlers> logger,
+        IAdminStorage<Guid, JobModel> storage)
+    {
+        this.logger = logger;
         this.storage = storage;
+    }
 
     public async Task<JobModel> Handle(JobQuery query, CancellationToken token) =>
         await storage.GetOrDefault(query.Id, token) ?? throw new NotFoundException();
@@ -45,7 +52,8 @@ internal class JobHandlers :
         }
         catch (StorageException ex) when (ex.InnerException is NotFoundException nfe)
         {
-            throw nfe;
+            logger.LogCritical("Job({JobId}, {JobName}) updating: not found.", command.Id, command.Name);
+            nfe.Throw();
         }
     }
 

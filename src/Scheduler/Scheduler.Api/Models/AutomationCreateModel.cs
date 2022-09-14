@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Api.Models;
 /// <summary>
 ///     Automation create model.
 /// </summary>
-public class AutomationCreateModel
+public sealed class AutomationCreateModel
 {
     /// <summary>
     ///     Name.

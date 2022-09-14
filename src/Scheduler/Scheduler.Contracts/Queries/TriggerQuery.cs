@@ -7,7 +7,7 @@ namespace Assistant.Net.Scheduler.Contracts.Queries;
 /// <summary>
 ///     Specific automation run trigger query.
 /// </summary>
-public class TriggerQuery : IMessage<TriggerModel>, INonCaching
+public sealed class TriggerQuery : IMessage<TriggerModel>, INonCaching
 {
     /// <summary/>
     public TriggerQuery(Guid runId) =>

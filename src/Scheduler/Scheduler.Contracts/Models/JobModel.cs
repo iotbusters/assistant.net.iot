@@ -7,7 +7,7 @@ namespace Assistant.Net.Scheduler.Contracts.Models;
 /// <summary>
 ///     Automation job model.
 /// </summary>
-public class JobModel
+public sealed class JobModel
 {
     /// <summary/>
     public JobModel(Guid id, string name, JobConfigurationDto configuration)

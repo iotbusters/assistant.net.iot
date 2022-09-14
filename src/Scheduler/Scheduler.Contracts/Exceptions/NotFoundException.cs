@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Exceptions;
 /// <summary>
 ///     Requested resource wasn't found.
 /// </summary>
-public class NotFoundException : MessageException
+public sealed class NotFoundException : MessageException
 {
     /// <summary/>
     public NotFoundException() : base("Requested resource wasn't found.") { }

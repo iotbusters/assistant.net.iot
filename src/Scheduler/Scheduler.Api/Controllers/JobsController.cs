@@ -16,7 +16,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers;
 /// </summary>
 [Route("jobs")]
 [ApiController]
-public class JobsController
+public sealed class JobsController
 {
     private readonly IMessagingClient client;
 

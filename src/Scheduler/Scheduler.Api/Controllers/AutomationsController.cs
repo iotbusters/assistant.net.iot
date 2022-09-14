@@ -17,7 +17,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers;
 /// </summary>
 [Route("automations")]
 [ApiController]
-public class AutomationsController
+public sealed class AutomationsController
 {
     private readonly IMessagingClient client;
 

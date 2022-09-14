@@ -14,7 +14,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers;
 /// </summary>
 [Route("triggers")]
 [ApiController]
-public class TriggersController
+public sealed class TriggersController
 {
     private readonly IMessagingClient client;
 

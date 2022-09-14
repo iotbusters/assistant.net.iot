@@ -1,6 +1,7 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Scheduler.Api.Models;
 using Assistant.Net.Scheduler.Contracts.Commands;
+using Assistant.Net.Scheduler.Contracts.Enums;
 using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,7 @@ namespace Assistant.Net.Scheduler.Api.Controllers;
 /// </summary>
 [Route("runs")]
 [ApiController]
-public class RunsController
+public sealed class RunsController
 {
     private readonly IMessagingClient client;
 
@@ -50,8 +51,13 @@ public class RunsController
     /// <param name="model">Update run details.</param>
     /// <param name="token" />
     [HttpPut("{id}")]
-    public Task Update(Guid id, RunUpdateModel model, CancellationToken token) =>
-        client.Request(new RunUpdateCommand(id, model.Status), token);
+    public Task Update(Guid id, RunUpdateModel model, CancellationToken token) => model.Status switch
+    {
+        RunStatus.Started => client.Request(new RunStartCommand(id), token),
+        RunStatus.Succeeded => client.Request(new RunSucceedCommand(id), token),
+        RunStatus.Failed => client.Request(new RunFailCommand(id), token),
+        var unexpectedStatus => throw new InvalidOperationException($"Unexpected status {unexpectedStatus}.")
+    };
 
     /// <summary>
     ///     Deletes automation run in cascade manner.

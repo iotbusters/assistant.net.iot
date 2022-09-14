@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Middlewares;
 
-internal class DiagnosticMiddleware : IMiddleware
+internal sealed class DiagnosticMiddleware : IMiddleware
 {
     private readonly IDiagnosticFactory diagnosticFactory;
 

@@ -6,6 +6,7 @@ using Assistant.Net.Scheduler.Contracts.Queries;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
 using Assistant.Net.Unions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,18 +15,23 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Handlers;
 
-internal class AutomationHandlers :
+internal sealed class AutomationHandlers :
     IMessageHandler<AutomationQuery, AutomationModel>,
     IMessageHandler<AutomationReferencesQuery, IEnumerable<AutomationReferenceModel>>,
     IMessageHandler<AutomationCreateCommand, Guid>,
     IMessageHandler<AutomationUpdateCommand>,
     IMessageHandler<AutomationDeleteCommand>
 {
+    private readonly ILogger<AutomationHandlers> logger;
     private readonly IAdminStorage<Guid, AutomationModel> storage;
     private readonly IMessagingClient client;
 
-    public AutomationHandlers(IAdminStorage<Guid, AutomationModel> storage, IMessagingClient client)
+    public AutomationHandlers(
+        ILogger<AutomationHandlers> logger,
+        IAdminStorage<Guid, AutomationModel> storage,
+        IMessagingClient client)
     {
+        this.logger = logger;
         this.storage = storage;
         this.client = client;
     }
@@ -34,7 +40,7 @@ internal class AutomationHandlers :
         await storage.GetOrDefault(query.Id, token) ?? throw new NotFoundException();
 
     public async Task<IEnumerable<AutomationReferenceModel>> Handle(AutomationReferencesQuery query, CancellationToken token) =>
-        await storage.GetKeys(token).Select(x => new AutomationReferenceModel(x)).AsEnumerableAsync();
+        await storage.GetKeys(token).Select(x => new AutomationReferenceModel(x)).AsEnumerableAsync(token);
 
     public async Task<Guid> Handle(AutomationCreateCommand command, CancellationToken token)
     {
@@ -57,7 +63,8 @@ internal class AutomationHandlers :
         }
         catch (StorageException ex) when (ex.InnerException is NotFoundException nfe)
         {
-            throw nfe;
+            logger.LogCritical("Automation({AutomationId}, {AutomationName}) updating: not found.", command.Id, command.Name);
+            nfe.Throw();
         }
     }
 

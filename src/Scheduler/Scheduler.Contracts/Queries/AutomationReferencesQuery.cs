@@ -7,4 +7,4 @@ namespace Assistant.Net.Scheduler.Contracts.Queries;
 /// <summary>
 ///     Automation references query.
 /// </summary>
-public class AutomationReferencesQuery : IMessage<IEnumerable<AutomationReferenceModel>>, INonCaching { }
+public sealed class AutomationReferencesQuery : IMessage<IEnumerable<AutomationReferenceModel>>, INonCaching { }

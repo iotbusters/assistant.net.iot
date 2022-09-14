@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Stopwatch timer calculation strategy configuration.
 /// </summary>
-public class JobStopwatchTimerConfigurationDto : JobTimerConfigurationDto
+public sealed class JobStopwatchTimerConfigurationDto : JobTimerConfigurationDto
 {
     /// <summary/>
     public JobStopwatchTimerConfigurationDto(TimeSpan time) =>

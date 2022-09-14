@@ -8,10 +8,10 @@ namespace Assistant.Net.Scheduler.Contracts.Models;
 /// <summary>
 ///     Automation run model.
 /// </summary>
-public class RunModel
+public sealed class RunModel
 {
     /// <summary/>
-    private RunModel(Guid id, Guid? nextRunId, Guid automationId, JobModel jobSnapshot, RunStatusDto status)
+    private RunModel(Guid id, Guid? nextRunId, Guid automationId, JobModel jobSnapshot, RunStatus status)
     {
         Id = id;
         NextRunId = nextRunId;
@@ -29,7 +29,7 @@ public class RunModel
         NextRunId = nextRunId;
         AutomationId = automationId;
         JobSnapshot = jobSnapshot;
-        Status = new RunStatusDto(RunStatus.Scheduled);
+        Status = RunStatus.Scheduled;
     }
 
     /// <summary>
@@ -56,15 +56,14 @@ public class RunModel
     /// <summary>
     ///     Latest status of the run.
     /// </summary>
-    [Required]
-    public RunStatusDto Status { get; }
+    public RunStatus Status { get; }
 
     /// <summary>
     ///     Creates a copy of <see cref="RunModel"/> with new <paramref name="status"/>.
     /// </summary>
-    public RunModel WithStatus(RunStatusDto status)
+    public RunModel WithStatus(RunStatus status)
     {
-        switch (Status.Value, status.Value)
+        switch (Status, status)
         {
             case (RunStatus.Scheduled, RunStatus.Started):
                 break;
@@ -79,7 +78,7 @@ public class RunModel
                 return this;
 
             default:
-                throw new InvalidRequestException($"Run({Id}) cannot change the status from {Status.Value} to {status.Value}.");
+                throw new InvalidRequestException($"Run({Id}) cannot change the status from {Status} to {status}.");
         }
 
         return new(Id, NextRunId, AutomationId, JobSnapshot, status);

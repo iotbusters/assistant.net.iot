@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Commands;
 /// <summary>
 ///     Daily timer calculation strategy configuration.
 /// </summary>
-public class JobDailyTimerConfigurationDto : JobTimerConfigurationDto
+public sealed class JobDailyTimerConfigurationDto : JobTimerConfigurationDto
 {
     /// <summary/>
     public JobDailyTimerConfigurationDto(TimeSpan time, params DayOfWeek[] days)

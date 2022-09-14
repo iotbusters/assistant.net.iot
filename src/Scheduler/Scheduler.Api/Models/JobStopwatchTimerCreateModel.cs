@@ -5,7 +5,7 @@ namespace Assistant.Net.Scheduler.Api.Models;
 /// <summary>
 ///     Automation job stopwatch timer create model.
 /// </summary>
-public class JobStopwatchTimerCreateModel : JobCreateModel
+public sealed class JobStopwatchTimerCreateModel : JobCreateModel
 {
     /// <summary>
     ///     Time delay before triggering.

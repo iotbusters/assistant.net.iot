@@ -6,7 +6,7 @@ using System.Net.Mime;
 
 namespace Assistant.Net.Scheduler.Api.Conventions;
 
-internal class ContentTypeConvention : IActionModelConvention
+internal sealed class ContentTypeConvention : IActionModelConvention
 {
     public void Apply(ActionModel action)
     {

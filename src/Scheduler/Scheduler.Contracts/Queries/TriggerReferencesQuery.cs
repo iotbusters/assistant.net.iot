@@ -7,4 +7,4 @@ namespace Assistant.Net.Scheduler.Contracts.Queries;
 /// <summary>
 ///     Automation run trigger references query.
 /// </summary>
-public class TriggerReferencesQuery : IMessage<IEnumerable<TriggerReferenceModel>>, INonCaching { }
+public sealed class TriggerReferencesQuery : IMessage<IEnumerable<TriggerReferenceModel>>, INonCaching { }

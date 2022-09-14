@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Middlewares;
 
-internal class ErrorHandlingMiddleware : IMiddleware
+internal sealed class ErrorHandlingMiddleware : IMiddleware
 {
     private readonly ISystemLifetime lifetime;
     private readonly ILogger logger;

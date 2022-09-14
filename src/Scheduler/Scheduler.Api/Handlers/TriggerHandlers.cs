@@ -8,6 +8,7 @@ using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using Assistant.Net.Storage.Abstractions;
 using Assistant.Net.Storage.Exceptions;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -15,22 +16,25 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Handlers;
 
-internal class TriggerHandlers :
+internal sealed class TriggerHandlers :
     IMessageHandler<TriggerReferencesQuery, IEnumerable<TriggerReferenceModel>>,
     IMessageHandler<TriggerQuery, TriggerModel>,
     IMessageHandler<TriggerCreateCommand, Guid>,
-    IMessageHandler<TriggerUpdateCommand>,
+    IMessageHandler<TriggerDeactivateCommand>,
     IMessageHandler<TriggerDeleteCommand>
 {
+    private readonly ILogger<TriggerHandlers> logger;
     private readonly IMessagingClient client;
     private readonly IAdminStorage<Guid, TriggerModel> storage;
     private readonly string timerEventName;
 
     public TriggerHandlers(
+        ILogger<TriggerHandlers> logger,
         IMessagingClient client,
         ITypeEncoder typeEncoder,
         IAdminStorage<Guid, TriggerModel> storage)
     {
+        this.logger = logger;
         this.client = client;
         this.storage = storage;
         this.timerEventName = typeEncoder.Encode(typeof(TimerTriggeredEvent))
@@ -38,7 +42,7 @@ internal class TriggerHandlers :
     }
 
     public async Task<IEnumerable<TriggerReferenceModel>> Handle(TriggerReferencesQuery query, CancellationToken token) =>
-        await storage.GetKeys(token).Select(x => new TriggerReferenceModel(x)).AsEnumerableAsync();
+        await storage.GetKeys(token).Select(x => new TriggerReferenceModel(x)).AsEnumerableAsync(token);
 
     public async Task<TriggerModel> Handle(TriggerQuery query, CancellationToken token) =>
         await storage.GetOrDefault(query.RunId, token) ?? throw new NotFoundException();
@@ -62,23 +66,25 @@ internal class TriggerHandlers :
             _ => throw new MessageContractException($"Run({run.Id}) doesn't have a trigger.")
         };
         await storage.AddOrGet(model.RunId, model, token);
+        await client.PublishObject(new TriggerCreatedEvent(model.RunId), token);
 
-        return model.RunId;
+        return model.RunId; // todo: generate own ID
     }
-    
-    public async Task Handle(TriggerUpdateCommand command, CancellationToken token)
+
+    public async Task Handle(TriggerDeactivateCommand command, CancellationToken token)
     {
         try
         {
             await storage.AddOrUpdate(
                 command.RunId,
                 addFactory: _ => throw new NotFoundException(),
-                updateFactory: (_, old) => old.Activate(command.IsActive),
+                updateFactory: (_, old) => old.Activate(isActive: false),
                 token);
         }
-        catch (StorageException ex) when (ex.InnerException is NotFoundException)
+        catch (StorageException ex) when (ex.InnerException is NotFoundException nfe)
         {
-            throw;
+            logger.LogCritical("Trigger({RunId}) deactivation: not found.", command.RunId);
+            nfe.Throw();
         }
     }
 

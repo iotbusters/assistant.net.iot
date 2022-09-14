@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Assistant.Net.Scheduler.Api.Conventions;
 
-internal class ResponseMappingFilter : IActionFilter
+internal sealed class ResponseMappingFilter : IActionFilter
 {
     public void OnActionExecuting(ActionExecutingContext context) { }
 

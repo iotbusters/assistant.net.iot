@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Events;
 /// <summary>
 ///     Device data has been changed event.
 /// </summary>
-public class DeviceDataChangedEvent : IMessage
+public sealed class DeviceDataChangedEvent : IMessage
 {
     /// <summary>
     ///     Associated device ID.

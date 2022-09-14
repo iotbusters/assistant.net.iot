@@ -6,7 +6,7 @@ namespace Assistant.Net.Scheduler.Contracts.Events;
 /// <summary>
 ///     The run has failed event.
 /// </summary>
-public class RunFailedEvent : IMessage
+public sealed class RunFailedEvent : IMessage
 {
     /// <summary/>
     public RunFailedEvent(Guid runId) =>
