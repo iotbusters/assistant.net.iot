@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures;
 
-public class SchedulerRemoteApiHandlerFixture : IDisposable
+public sealed class SchedulerRemoteApiHandlerFixture : IDisposable
 {
     private readonly ServiceProvider provider;
     private readonly IHost host;
@@ -26,9 +26,13 @@ public class SchedulerRemoteApiHandlerFixture : IDisposable
         return await handler!.Request(request);
     }
 
+    public T Service<T>(string name) where T : class =>
+        host.Services.CreateScopeWithNamedOptionContext(name).ServiceProvider.GetRequiredService<T>();
+
     public void Dispose()
     {
-        provider.Dispose();
+        host.StopAsync(timeout: TimeSpan.FromSeconds(1)).ConfigureAwait(false).GetAwaiter().GetResult();
         host.Dispose();
+        provider.Dispose();
     }
 }

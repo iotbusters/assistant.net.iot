@@ -8,7 +8,7 @@ using System;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures;
 
-public class SchedulerLocalApiHandlerFixtureBuilder
+public sealed class SchedulerLocalApiHandlerFixtureBuilder
 {
     private readonly ServiceCollection services;
     private Action<IServiceProvider> configureProvider = delegate { };

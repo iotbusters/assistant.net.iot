@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Controllers;
 
-public class JobsControllerTests
+public sealed class JobsControllerTests
 {
     [Test]
     public async Task Get_jobs_id_JobEventTriggerModel()
@@ -81,7 +81,7 @@ public class JobsControllerTests
     public async Task Get_jobs_id_JobActionModel()
     {
         var jobId = Guid.NewGuid();
-        var configuration = new JobActionConfigurationDto(new TestEmptyMessage());
+        var configuration = new JobActionConfigurationDto(new TestEmptyApiMessage());
         var job = new JobModel(jobId, name: "name", configuration);
         var handler = new TestMessageHandler<JobQuery, JobModel>(_ => job);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
@@ -156,7 +156,7 @@ public class JobsControllerTests
         var handler = new TestMessageHandler<JobCreateCommand, Guid>(_ => jobId);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
-        var configuration = new JobActionConfigurationDto(new TestEmptyMessage());
+        var configuration = new JobActionConfigurationDto(new TestEmptyApiMessage());
         var command = new JobCreateCommand(name: "name", configuration);
         var response = await fixture.Post("http://localhost/api/jobs", new JobActionCreateModel
         {
@@ -178,7 +178,7 @@ public class JobsControllerTests
     public async Task Put_jobs_id_JobUpdateModel()
     {
         var jobId = Guid.NewGuid();
-        var configuration = new JobActionConfigurationDto(new TestEmptyMessage());
+        var configuration = new JobActionConfigurationDto(new TestEmptyApiMessage());
         var job = new JobModel(jobId, name: "name", configuration);
         var handler1 = new TestMessageHandler<JobQuery, JobModel>(_ => job);
         var handler2 = new TestMessageHandler<JobUpdateCommand, Nothing>(_ => Nothing.Instance);

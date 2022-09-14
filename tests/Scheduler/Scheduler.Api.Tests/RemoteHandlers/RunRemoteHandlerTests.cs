@@ -2,7 +2,6 @@
 using Assistant.Net.Scheduler.Api.Tests.Fixtures;
 using Assistant.Net.Scheduler.Api.Tests.Mocks;
 using Assistant.Net.Scheduler.Contracts.Commands;
-using Assistant.Net.Scheduler.Contracts.Enums;
 using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using FluentAssertions;
@@ -14,7 +13,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Scheduler.Api.Tests.RemoteHandlers;
 
 [Timeout(2000)]
-public class RunRemoteHandlerTests
+public sealed class RunRemoteHandlerTests
 {
     [Test]
     public async Task Handle_RunQuery_delegatesQueryAndReturnsRunModel()
@@ -60,15 +59,15 @@ public class RunRemoteHandlerTests
     }
 
     [Test]
-    public async Task Handle_RunUpdateCommand_delegatesCommand()
+    public async Task Handle_RunStartCommand_delegatesCommand()
     {
-        var handler = new TestMessageHandler<RunUpdateCommand, Nothing>(Nothing.Instance);
+        var handler = new TestMessageHandler<RunStartCommand, Nothing>(Nothing.Instance);
         using var fixture = new SchedulerRemoteApiHandlerFixtureBuilder()
             .UseSqlite(SetupSqlite.ConnectionString)
             .ReplaceHandler(handler)
             .Build();
 
-        var command = new RunUpdateCommand(id: Guid.NewGuid(), new RunStatusDto(RunStatus.Started, "message"));
+        var command = new RunStartCommand(id: Guid.NewGuid());
         await fixture.Handle(command);
 
         handler.Request.Should().BeEquivalentTo(command);

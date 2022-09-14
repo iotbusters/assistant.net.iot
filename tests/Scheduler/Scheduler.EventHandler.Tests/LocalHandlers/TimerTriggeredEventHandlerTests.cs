@@ -1,6 +1,5 @@
 ﻿using Assistant.Net.Messaging.Abstractions;
 using Assistant.Net.Scheduler.Contracts.Commands;
-using Assistant.Net.Scheduler.Contracts.Enums;
 using Assistant.Net.Scheduler.Contracts.Events;
 using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Scheduler.Contracts.Queries;
@@ -14,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.EventHandler.Tests.LocalHandlers;
 
-public class TimerTriggeredEventHandlerTests
+public sealed class TimerTriggeredEventHandlerTests
 {
     [Test]
     public async Task Handle_TimerTriggeredEvent_requestsRunQueryAndRunUpdateCommand()
@@ -32,8 +31,8 @@ public class TimerTriggeredEventHandlerTests
                 new JobEventConfigurationDto(
                     eventName: "Event",
                     eventMask: new Dictionary<string, string>())));
-        var handler1 = new TestEmptyMessageHandler<RunQuery, RunModel>(run);
-        var handler2 = new TestEmptyMessageHandler<RunUpdateCommand, Nothing>(Nothing.Instance);
+        var handler1 = new TestMessageHandler<RunQuery, RunModel>(run);
+        var handler2 = new TestMessageHandler<RunSucceedCommand, Nothing>(Nothing.Instance);
         using var fixture = new SchedulerLocalEventHandlerFixtureBuilder()
             .ReplaceHandler(handler1)
             .ReplaceHandler(handler2)
@@ -44,9 +43,7 @@ public class TimerTriggeredEventHandlerTests
         handler1.Requests.Should().BeEquivalentTo(new[] {new RunQuery(run.Id)});
         handler2.Requests.Should().BeEquivalentTo(new[]
         {
-            new RunUpdateCommand(
-                run.Id,
-                new RunStatusDto(RunStatus.Succeeded, $"Timer has triggered the run at {triggered}"))
+            new RunSucceedCommand(run.Id)
         });
     }
 }

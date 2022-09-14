@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.LocalHandlers;
 
-public class AutomationLocalHandlerTests
+public sealed class AutomationLocalHandlerTests
 {
     [Test]
     public async Task Handle_AutomationQuery_returnsAutomation()

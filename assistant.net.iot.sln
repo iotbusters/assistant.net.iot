@@ -70,7 +70,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MessageRouter", "src\Device
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scheduler.Trigger.Tests", "tests\Scheduler\Scheduler.Trigger.Tests\Scheduler.Trigger.Tests.csproj", "{72487351-DA5F-430B-8D32-64B2528B3821}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Integration.Tests", "tests\Integration.Tests\Integration.Tests.csproj", "{DBDFBB2D-F110-46E0-B95C-E1E53C66DA77}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Integration.Tests", "tests\Integration.Tests\Integration.Tests.csproj", "{DBDFBB2D-F110-46E0-B95C-E1E53C66DA77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test.Common", "tests\Test.Common\Test.Common.csproj", "{467AE1AF-FCD5-4416-BD90-7A6047E30633}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -238,6 +240,18 @@ Global
 		{DBDFBB2D-F110-46E0-B95C-E1E53C66DA77}.Release|x64.Build.0 = Release|Any CPU
 		{DBDFBB2D-F110-46E0-B95C-E1E53C66DA77}.Release|x86.ActiveCfg = Release|Any CPU
 		{DBDFBB2D-F110-46E0-B95C-E1E53C66DA77}.Release|x86.Build.0 = Release|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Debug|x64.Build.0 = Debug|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Debug|x86.Build.0 = Debug|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Release|Any CPU.Build.0 = Release|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Release|x64.ActiveCfg = Release|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Release|x64.Build.0 = Release|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Release|x86.ActiveCfg = Release|Any CPU
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -261,6 +275,7 @@ Global
 		{49910947-2681-4995-9C94-153F28CB31A9} = {307B2D10-651C-42A4-84A0-41AE6E8587B3}
 		{72487351-DA5F-430B-8D32-64B2528B3821} = {C8ECCEA8-8F46-48CA-8CF7-E8F11562BE00}
 		{DBDFBB2D-F110-46E0-B95C-E1E53C66DA77} = {BB1E334D-9901-4D4F-9D26-9A0EE5A3B0BF}
+		{467AE1AF-FCD5-4416-BD90-7A6047E30633} = {BB1E334D-9901-4D4F-9D26-9A0EE5A3B0BF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {8B20E7EC-96C4-4167-AC67-BCDBF9F37CF4}

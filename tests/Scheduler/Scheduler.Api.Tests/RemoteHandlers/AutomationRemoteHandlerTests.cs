@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Scheduler.Api.Tests.RemoteHandlers;
 
 [Timeout(2000)]
-public class AutomationRemoteHandlerTests
+public sealed class AutomationRemoteHandlerTests
 {
     [Test]
     public async Task Handle_AutomationQuery_delegatesQueryAndReturnsAutomationModel()

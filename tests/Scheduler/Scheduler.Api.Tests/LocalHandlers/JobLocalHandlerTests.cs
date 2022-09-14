@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.LocalHandlers;
 
-public class JobLocalHandlerTests
+public sealed class JobLocalHandlerTests
 {
     [Test]
     public async Task Handle_JobQuery_returnsJobWithEventConfiguration()

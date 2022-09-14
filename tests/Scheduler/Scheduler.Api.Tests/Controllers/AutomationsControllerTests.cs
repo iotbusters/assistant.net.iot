@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Controllers;
 
-public class AutomationsControllerTests
+public sealed class AutomationsControllerTests
 {
     [Test]
     public async Task Get_automations()

@@ -2,6 +2,6 @@
 
 namespace Assistant.Net.Scheduler.Trigger.Tests.Mocks;
 
-public record TestEvent : IMessage;
+public sealed record TestEvent : IMessage;
 
-public record TestEvent<T>(T Value) : IMessage;
+public sealed record TestEvent<T>(T Value) : IMessage;

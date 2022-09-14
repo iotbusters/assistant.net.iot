@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures;
 
-public class SchedulerLocalApiHandlerFixture : IDisposable
+public sealed class SchedulerLocalApiHandlerFixture : IDisposable
 {
     private readonly ServiceProvider provider;
 
@@ -30,5 +30,5 @@ public class SchedulerLocalApiHandlerFixture : IDisposable
         return await storage!.GetOrDefault(key);
     }
 
-    public virtual void Dispose() => provider.Dispose();
+    public void Dispose() => provider.Dispose();
 }

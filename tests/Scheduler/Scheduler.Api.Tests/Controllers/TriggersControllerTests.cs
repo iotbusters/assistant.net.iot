@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Controllers;
 
-public class TriggersControllerTests
+public sealed class TriggersControllerTests
 {
     [Test]
     public async Task Get_triggers()

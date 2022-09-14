@@ -1,7 +1,7 @@
 ﻿using Assistant.Net.Abstractions;
 using System;
 
-namespace Assistant.Net.Scheduler.Api.Tests.Mocks;
+namespace Assistant.Net.Test.Common.Mocks;
 
 public sealed class TestConfigureOptionsSource<T> : ConfigureOptionsSourceBase<T> where T : class
 {

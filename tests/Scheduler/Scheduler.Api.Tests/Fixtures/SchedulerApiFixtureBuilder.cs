@@ -11,7 +11,7 @@ using System.Net.Http;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures;
 
-public class SchedulerApiFixtureBuilder
+public sealed class SchedulerApiFixtureBuilder
 {
     private readonly IHostBuilder remoteHostBuilder;
 
@@ -24,8 +24,8 @@ public class SchedulerApiFixtureBuilder
             {
                 // disable interceptors
                 s.ConfigureMessagingClient(b => b
+                    .TimeoutIn(TimeSpan.FromSeconds(1))
                     .DebuggerTimeout()
-                    .TimeoutIn(TimeSpan.FromSeconds(0.5))
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>());
                 s.AddTypeEncoder(o => o

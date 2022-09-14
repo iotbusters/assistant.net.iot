@@ -7,10 +7,10 @@ using NUnit.Framework;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Assistant.Net.Integration.Tests;
+namespace Assistant.Net.Test.Common;
 
 [SetUpFixture]
-public class SetupSqlite
+public sealed class SetupSqlite
 {
     [OneTimeSetUp]
     public async Task OneTimeSetUp()

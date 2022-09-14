@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Mocks;
 
-public class TestStorage<TKey, TValue> : IAdminStorage<TKey, TValue>, IEnumerable<KeyValuePair<TKey,TValue>>
+public sealed class TestStorage<TKey, TValue> : IAdminStorage<TKey, TValue>, IEnumerable<KeyValuePair<TKey,TValue>>
     where TKey : struct
 {
     private readonly ConcurrentDictionary<TKey, TValue> storage = new();
@@ -32,23 +32,36 @@ public class TestStorage<TKey, TValue> : IAdminStorage<TKey, TValue>, IEnumerabl
         return Task.FromResult<Option<TValue>>(Option.None);
     }
 
-    public Task<Option<Audit>> TryGetAudit(TKey key, CancellationToken token = default)
-    {
-        if (storage.ContainsKey(key))
-            return Task.FromResult(Option.Some(new Audit(
-                correlationId: "test",
-                user: "test",
-                created: DateTimeOffset.UtcNow,
-                version: 1L)));
-        return Task.FromResult<Option<Audit>>(Option.None);
-    }
-
     public Task<Option<TValue>> TryRemove(TKey key, CancellationToken token = default)
     {
         if (storage.TryRemove(key, out var value))
             return Task.FromResult(Option.Some(value));
         return Task.FromResult<Option<TValue>>(Option.None);
     }
+
+    public Task<StorageValue<TValue>> AddOrGet(TKey key, Func<TKey, Task<StorageValue<TValue>>> addFactory, CancellationToken token)
+    {
+        var value = storage.GetOrAdd(key, _ => addFactory(key).Result.Value);
+        return Task.FromResult(new StorageValue<TValue>(value) {CorrelationId = "test", User = "test"});
+    }
+
+    public Task<StorageValue<TValue>> AddOrUpdate(TKey key, Func<TKey, Task<StorageValue<TValue>>> addFactory, Func<TKey, StorageValue<TValue>, Task<StorageValue<TValue>>> updateFactory, CancellationToken token)
+    {
+        var value = storage.AddOrUpdate(
+            key,
+            _ => addFactory(key).Result.Value,
+            (k, v) =>
+            {
+                var old = new StorageValue<TValue>(v);
+                return updateFactory(k, old).Result.Value;
+            });
+        return Task.FromResult(new StorageValue<TValue>(value) { CorrelationId = "test", User = "test" });
+    }
+
+    public Task<Option<StorageValue<TValue>>> TryGetDetailed(TKey key, CancellationToken token) =>
+        Task.FromResult(storage.TryGetValue(key, out var value)
+            ? Option.Some(new StorageValue<TValue>(value))
+            : Option.None);
 
     public IAsyncEnumerable<TKey> GetKeys(CancellationToken token = default) =>
         storage.Keys.AsAsync();

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures;
 
-public class SchedulerRemoteEventHandlerFixture : IDisposable
+public sealed class SchedulerRemoteEventHandlerFixture : IDisposable
 {
     private readonly ServiceProvider provider;
     private readonly IHost host;
@@ -28,7 +28,8 @@ public class SchedulerRemoteEventHandlerFixture : IDisposable
 
     public void Dispose()
     {
-        provider.Dispose();
+        host.StopAsync(timeout: TimeSpan.FromSeconds(1)).ConfigureAwait(false).GetAwaiter().GetResult();
         host.Dispose();
+        provider.Dispose();
     }
 }

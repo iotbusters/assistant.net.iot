@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Scheduler.Api.Tests.RemoteHandlers;
 
 [Timeout(2000)]
-public class JobRemoteHandlerTests
+public sealed class JobRemoteHandlerTests
 {
     [Test]
     public async Task Handle_JobQuery_delegatesQueryAndReturnsJobModel()

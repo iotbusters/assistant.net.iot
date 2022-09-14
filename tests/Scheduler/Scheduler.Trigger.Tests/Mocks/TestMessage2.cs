@@ -2,4 +2,4 @@
 
 namespace Assistant.Net.Scheduler.Trigger.Tests.Mocks;
 
-public record TestMessage2(string Text) : IMessage<TestResponse>;
+public sealed record TestMessage2(string Text) : IMessage<TestResponse>;

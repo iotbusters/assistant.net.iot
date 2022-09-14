@@ -12,7 +12,7 @@ using MediaTypeHeaderValue = System.Net.Http.Headers.MediaTypeHeaderValue;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures;
 
-public class SchedulerApiFixture : IDisposable
+public sealed class SchedulerApiFixture : IDisposable
 {
     private readonly ServiceProvider provider;
     private readonly IHost host;
@@ -71,7 +71,7 @@ public class SchedulerApiFixture : IDisposable
 
     public StreamContent NoContent() => new(new MemoryStream());
 
-    public virtual void Dispose()
+    public void Dispose()
     {
         provider.Dispose();
         host.Dispose();

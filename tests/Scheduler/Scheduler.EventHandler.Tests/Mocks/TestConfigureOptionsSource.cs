@@ -3,7 +3,7 @@ using System;
 
 namespace Assistant.Net.Scheduler.EventHandler.Tests.Mocks;
 
-public class TestConfigureOptionsSource<T> : ConfigureOptionsSourceBase<T> where T : class
+public sealed class TestConfigureOptionsSource<T> : ConfigureOptionsSourceBase<T> where T : class
 {
     public Action<T> ConfigureAction { get; set; } = delegate { };
 

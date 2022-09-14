@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Assistant.Net.Scheduler.EventHandler.Tests.RemoteHandlers;
 
 [SetUpFixture]
-public class SetupSqlite
+public sealed class SetupSqlite
 {
     [OneTimeSetUp]
     public async Task OneTimeSetUp()

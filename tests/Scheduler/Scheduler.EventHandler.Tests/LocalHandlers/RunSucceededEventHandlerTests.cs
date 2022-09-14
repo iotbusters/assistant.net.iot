@@ -13,14 +13,14 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.EventHandler.Tests.LocalHandlers;
 
-public class RunSucceededEventHandlerTests
+public sealed class RunSucceededEventHandlerTests
 {
     [Test]
     public async Task Handle_RunSucceededEvent_requestsRunQueryAndRunCreateCommand()
     {
         var run = HasRunTrigger(runId: Guid.NewGuid(), nextRunId: null);
-        var handler1 = new TestEmptyMessageHandler<RunQuery, RunModel>(run);
-        var handler2 = new TestEmptyMessageHandler<RunCreateCommand, Guid>(Guid.NewGuid());
+        var handler1 = new TestMessageHandler<RunQuery, RunModel>(run);
+        var handler2 = new TestMessageHandler<RunCreateCommand, Guid>(Guid.NewGuid());
         using var fixture = new SchedulerLocalEventHandlerFixtureBuilder()
             .ReplaceHandler(handler1)
             .ReplaceHandler(handler2)
@@ -36,12 +36,12 @@ public class RunSucceededEventHandlerTests
     public async Task Handle_RunSucceededEvent_requestsRunQuery()
     {
         var run = HasRunTrigger(runId: Guid.NewGuid(), nextRunId: Guid.NewGuid());
-        var handler1 = new TestEmptyMessageHandler<RunQuery, RunModel>(x =>
+        var handler1 = new TestMessageHandler<RunQuery, RunModel>(x =>
         {
             if (x.Id == run.Id) return run;
             throw new NotFoundException();
         });
-        var handler2 = new TestEmptyMessageHandler<RunCreateCommand, Guid>(response: Guid.NewGuid());
+        var handler2 = new TestMessageHandler<RunCreateCommand, Guid>(response: Guid.NewGuid());
         using var fixture = new SchedulerLocalEventHandlerFixtureBuilder()
             .ReplaceHandler(handler1)
             .ReplaceHandler(handler2)

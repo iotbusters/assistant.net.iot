@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Mocks;
 
-internal class TestMessageHandler<TRequest, TResponse> : IMessageHandler<TRequest, TResponse>
+public sealed class TestMessageHandler<TRequest, TResponse> : IMessageHandler<TRequest, TResponse>
     where TRequest : class, IMessage<TResponse>
 {
     private readonly Func<TRequest, Task<TResponse>> handle;

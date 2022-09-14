@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Assistant.Net.Scheduler.Trigger.Tests.Mocks;
 
-public class TestConfigureOptionsSource : ConfigureOptionsSourceBase<MessagingClientOptions>
+public sealed class TestConfigureOptionsSource : ConfigureOptionsSourceBase<MessagingClientOptions>
 {
     public override void Configure(MessagingClientOptions options)
     {

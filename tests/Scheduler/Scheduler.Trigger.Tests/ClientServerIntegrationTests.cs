@@ -9,7 +9,7 @@
 //namespace Assistant.Net.Scheduler.Trigger.Tests;
 
 //[Timeout(2000)]
-//public class ClientServerIntegrationTests
+//public sealed class ClientServerIntegrationTests
 //{
 //    [Test]
 //    public async Task Request_throwsMessageNotRegisteredException_noRegisteredHandler()

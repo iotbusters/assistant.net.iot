@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.LocalHandlers;
 
-public class RunLocalHandlerTests
+public sealed class RunLocalHandlerTests
 {
     [Test]
     public async Task Handle_RunQuery_returnsRun()
@@ -63,7 +63,7 @@ public class RunLocalHandlerTests
         var createdRun = await fixture.GetOrDefault<Guid, RunModel>(runId);
         createdRun.Should().BeEquivalentTo(
             new RunModel(runId, nextRunId: null, automationId: automation.Id, jobSnapshot: job)
-                .WithStatus(new RunStatusDto(RunStatus.Started)));
+                .WithStatus(RunStatus.Started));
         var createdTrigger = await fixture.GetOrDefault<Guid, TriggerModel>(runId);
         createdTrigger.Should().BeEquivalentTo(
             new TriggerModel(runId, isActive: true, configuration.EventName, configuration.EventMask));
@@ -97,7 +97,7 @@ public class RunLocalHandlerTests
     }
 
     [Test]
-    public async Task Handle_RunUpdateCommand_updatesRunAndPublishesSucceededEvent()
+    public async Task Handle_RunSucceededEvent_updatesRunAndPublishesSucceededEvent()
     {
         var configuration = new JobEventConfigurationDto(eventName: "Event", eventMask: new Dictionary<string, string>());
         var jobSnapshot = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
@@ -105,7 +105,7 @@ public class RunLocalHandlerTests
             id: Guid.NewGuid(),
             nextRunId: Guid.NewGuid(),
             automationId: Guid.NewGuid(),
-            jobSnapshot: jobSnapshot).WithStatus(new RunStatusDto(RunStatus.Started));
+            jobSnapshot: jobSnapshot).WithStatus(RunStatus.Started);
         var trigger = new TriggerModel(
             run.Id,
             isActive: true,
@@ -118,16 +118,16 @@ public class RunLocalHandlerTests
             .Store(run.Id, trigger)
             .Build();
 
-        var command = new RunUpdateCommand(run.Id, new RunStatusDto(RunStatus.Succeeded));
+        var command = new RunSucceedCommand(run.Id);
         await fixture.Handle(command);
 
         var value = await fixture.GetOrDefault<Guid, RunModel>(run.Id);
-        value.Should().BeEquivalentTo(run.WithStatus(new RunStatusDto(RunStatus.Succeeded)));
+        value.Should().BeEquivalentTo(run.WithStatus(RunStatus.Succeeded));
         handler.Request.Should().BeEquivalentTo(new RunSucceededEvent(run.Id));
     }
 
     [Test]
-    public async Task Handle_RunUpdateCommand_updatesRunAndPublishesFailedEvent()
+    public async Task Handle_RunSucceededEvent_updatesRunAndPublishesFailedEvent()
     {
         var run = new RunModel(
             id: Guid.NewGuid(),
@@ -139,7 +139,7 @@ public class RunLocalHandlerTests
                 new JobEventConfigurationDto(
                     eventName: "Event",
                     eventMask: new Dictionary<string, string>())))
-            .WithStatus(new RunStatusDto(RunStatus.Started));
+            .WithStatus(RunStatus.Started);
         var trigger = new TriggerModel(
             run.Id,
             isActive: true,
@@ -154,16 +154,16 @@ public class RunLocalHandlerTests
             .ReplaceStorage(new TestStorage<Guid, TriggerModel> {{run.Id, trigger}})
             .Build();
 
-        var command = new RunUpdateCommand(run.Id, new RunStatusDto(RunStatus.Failed));
+        var command = new RunFailCommand(run.Id);
         await fixture.Handle(command);
 
         var value = await storage.GetOrDefault(run.Id);
-        value.Should().BeEquivalentTo(run.WithStatus(new RunStatusDto(RunStatus.Failed)));
+        value.Should().BeEquivalentTo(run.WithStatus(RunStatus.Failed));
         handler.Request.Should().BeEquivalentTo(new RunFailedEvent(run.Id));
     }
 
     [Test]
-    public async Task Handle_RunUpdateCommand_updatesRunAndRequestsTriggerCreateCommand()
+    public async Task Handle_RunSucceededEvent_updatesRunAndRequestsTriggerCreateCommand()
     {
         var configuration = new JobEventConfigurationDto(eventName: "Event", eventMask: new Dictionary<string, string>());
         var jobSnapshot = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
@@ -171,23 +171,23 @@ public class RunLocalHandlerTests
         var handler = new TestMessageHandler<TriggerCreateCommand, Guid>(Guid.NewGuid());
         using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().ReplaceHandler(handler).Store(run.Id, run).Build();
 
-        var command = new RunUpdateCommand(run.Id, new RunStatusDto(RunStatus.Started));
+        var command = new RunStartCommand(run.Id);
         await fixture.Handle(command);
 
         var value = await fixture.GetOrDefault<Guid, RunModel>(run.Id);
-        value.Should().BeEquivalentTo(run.WithStatus(new RunStatusDto(RunStatus.Started)));
+        value.Should().BeEquivalentTo(run.WithStatus(RunStatus.Started));
         handler.Request.Should().BeEquivalentTo(new TriggerCreateCommand(run.Id));
     }
 
     [Test]
-    public async Task Handle_RunUpdateCommand_throwsNotFoundException()
+    public async Task Handle_RunSucceededEvent_throwsNotFoundException()
     {
         var configuration = new JobEventConfigurationDto(eventName: "Event", eventMask: new Dictionary<string, string>());
         var jobSnapshot = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
         var run = new RunModel(id: Guid.NewGuid(), nextRunId: Guid.NewGuid(), automationId: Guid.NewGuid(), jobSnapshot: jobSnapshot);
         using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Store(run.Id, run).Build();
 
-        var command = new RunUpdateCommand(id: Guid.NewGuid(), new RunStatusDto(RunStatus.Succeeded));
+        var command = new RunSucceedCommand(id: Guid.NewGuid());
         await fixture.Awaiting(x => x.Handle(command))
             .Should().ThrowAsync<NotFoundException>();
     }

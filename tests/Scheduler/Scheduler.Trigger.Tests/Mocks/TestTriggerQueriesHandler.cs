@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Trigger.Tests.Mocks;
 
-public class TestTriggerQueriesHandler :
+public sealed class TestTriggerQueriesHandler :
     IMessageHandler<TriggerReferencesQuery, IEnumerable<TriggerReferenceModel>>,
     IMessageHandler<TriggerQuery, TriggerModel>
 {

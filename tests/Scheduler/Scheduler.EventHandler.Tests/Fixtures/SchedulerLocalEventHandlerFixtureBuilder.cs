@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures;
 
-public class SchedulerLocalEventHandlerFixtureBuilder
+public sealed class SchedulerLocalEventHandlerFixtureBuilder
 {
     private readonly ServiceCollection services;
 
@@ -28,7 +28,7 @@ public class SchedulerLocalEventHandlerFixtureBuilder
 
     public SchedulerLocalEventHandlerFixtureBuilder ReplaceHandler(object handler)
     {
-        services.ConfigureGenericMessagingClient(b => b.AddHandler(handler));
+        services.ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b.AddHandler(handler));
         return this;
     }
 

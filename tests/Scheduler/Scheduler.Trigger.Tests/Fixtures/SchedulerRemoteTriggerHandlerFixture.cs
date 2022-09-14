@@ -1,14 +1,15 @@
-﻿using Assistant.Net.Messaging.Abstractions;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.Messaging.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 
 namespace Assistant.Net.Scheduler.Trigger.Tests.Fixtures;
 
-public class SchedulerRemoteTriggerHandlerFixture : IDisposable
+public sealed class SchedulerRemoteTriggerHandlerFixture : IDisposable
 {
-    internal readonly ServiceProvider provider;
-    internal readonly IHost host;
+    private readonly ServiceProvider provider;
+    private readonly IHost host;
 
     public SchedulerRemoteTriggerHandlerFixture(ServiceProvider provider, IHost host)
     {
@@ -18,8 +19,11 @@ public class SchedulerRemoteTriggerHandlerFixture : IDisposable
 
     public IMessagingClient Client => provider.GetRequiredService<IMessagingClient>();
 
+    public T Service<T>() where T : class => host.Services.GetRequiredService<T>();
+
     public void Dispose()
     {
+        host.StopAsync(timeout: TimeSpan.FromSeconds(1)).ConfigureAwait(false).GetAwaiter().GetResult();
         host.Dispose();
         provider.Dispose();
     }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures;
 
-public class SchedulerLocalEventHandlerFixture : IDisposable
+public sealed class SchedulerLocalEventHandlerFixture : IDisposable
 {
     private readonly IServiceScope scope;
 
@@ -20,6 +20,5 @@ public class SchedulerLocalEventHandlerFixture : IDisposable
         return await handler!.Request(request);
     }
 
-    public virtual void Dispose() =>
-        scope.Dispose();
+    public void Dispose() => scope.Dispose();
 }

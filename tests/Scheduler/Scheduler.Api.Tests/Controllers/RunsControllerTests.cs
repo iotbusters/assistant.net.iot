@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Controllers;
 
-public class RunsControllerTests
+public sealed class RunsControllerTests
 {
     [Test]
     public async Task Get_Runs_id()
@@ -69,13 +69,12 @@ public class RunsControllerTests
     public async Task Put_Runs_id()
     {
         var runId = Guid.NewGuid();
-        var handler = new TestMessageHandler<RunUpdateCommand, Nothing>(_ => Nothing.Instance);
+        var handler = new TestMessageHandler<RunStartCommand, Nothing>(_ => Nothing.Instance);
         using var fixture = new SchedulerApiFixtureBuilder().ReplaceApiHandler(handler).Build();
 
-        var command = new RunUpdateCommand(runId, new RunStatusDto(RunStatus.Started, "message"));
         var response = await fixture.Put($"http://localhost/api/runs/{runId}", new RunUpdateModel
         {
-            Status = command.Status
+            Status = RunStatus.Started
         });
 
         response.Should().BeEquivalentTo(new
@@ -84,7 +83,7 @@ public class RunsControllerTests
             RequestMessage = new { RequestUri = new Uri($"http://localhost/api/runs/{runId}") },
             Content = fixture.NoContent()
         });
-        handler.Request.Should().BeEquivalentTo(command);
+        handler.Request.Should().BeEquivalentTo(new RunStartCommand(runId));
     }
 
     [Test]
