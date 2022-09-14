@@ -13,17 +13,19 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using System;
 using System.IO;
 using System.Text.Json.Serialization;
+using System.Threading;
 
 namespace Assistant.Net.Scheduler.Api;
 
 /// <summary>
 ///     Scheduler API startup configuration.
 /// </summary>
-public class Startup
+public sealed class Startup
 {
     /// <summary />
     public Startup(IConfiguration configuration) =>
@@ -36,6 +38,10 @@ public class Startup
     public void ConfigureServices(IServiceCollection services)
     {
         services
+            .AddLogging(b => b
+                .AddYamlConsole()
+                .AddPropertyScope("ApplicationName", p => p.GetRequiredService<IHostEnvironment>().ApplicationName)
+                .AddPropertyScope("Thread", () => Thread.CurrentThread.ManagedThreadId))
             .AddStorage(GenericOptionsNames.DefaultName, b => b
                 .UseMongo(ConfigureStorage)
                 .UseMongoSingleProvider()
@@ -49,14 +55,11 @@ public class Startup
                 .AddHandler<JobHandlers>()
                 .AddHandler<RunHandlers>()
                 .AddHandler<TriggerHandlers>())
-            .ConfigureGenericMessagingClient(b => b
-                .UseMongo(ConfigureMessaging)
-                .UseMongoSingleProvider()
+            .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b
+                .AddSingle<TriggerCreatedEvent>()
                 .AddSingle<RunSucceededEvent>()
-                .AddSingle<RunFailedEvent>());
-
-        // todo: configure logging, enrich request details, correlation id, machine name, thread...
-        //services.AddLogging(b => b.AddConsole());
+                .AddSingle<RunFailedEvent>()
+            );
 
         // todo: implement authorization
         //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);

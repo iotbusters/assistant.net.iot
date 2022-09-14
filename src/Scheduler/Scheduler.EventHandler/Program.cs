@@ -4,7 +4,7 @@ using System;
 namespace Assistant.Net.Scheduler.EventHandler;
 
 /// <summary/>
-public class Program
+public sealed class Program
 {
     /// <summary/>
     public static void Main(string[] args) => CreateHostBuilder(args).Build().Run();

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.EventHandler.Handlers;
 
-internal class RunFailedEventHandler : IMessageHandler<RunFailedEvent>
+internal sealed class RunFailedEventHandler : IMessageHandler<RunFailedEvent>
 {
     private readonly ILogger logger;
     private readonly IMessagingClient client;
@@ -21,7 +21,7 @@ internal class RunFailedEventHandler : IMessageHandler<RunFailedEvent>
     public async Task Handle(RunFailedEvent @event, CancellationToken token)
     {
         var run = await client.Request(new RunQuery(@event.RunId), token);
-        logger.LogCritical("Run({AutomationId}/{RunId}): failed.", run.AutomationId, run.Id);
+        logger.LogCritical("Run({AutomationId}, {RunId}): failed.", run.AutomationId, run.Id);
         // note: automation is implicitly blocked.
         // todo: resolve run failure and automation blocking.
     }

@@ -5,7 +5,6 @@ using Assistant.Net.Options;
 using Assistant.Net.Scheduler.Trigger.Handlers;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Collections.Generic;
 
 namespace Assistant.Net.Scheduler.Trigger.Internal;
 
@@ -18,17 +17,17 @@ public static class MessagingClientOptionsExtensions
     ///     Registers a generic message handler definition.
     /// </summary>
     /// <exception cref="ArgumentException"/>
-    public static MessagingClientOptions AddTriggerEventHandlers(this MessagingClientOptions options, IDictionary<Guid, Type> messageTypes)
+    public static MessagingClientOptions AddEventHandlerOf(this MessagingClientOptions options, params Type[] messageTypes)
     {
-        foreach (var (runId, messageType) in messageTypes)
+        foreach (var messageType in messageTypes)
         {
             if (!messageType.IsMessage())
                 throw new ArgumentException($"Expected message but provided {messageType}.", nameof(messageType));
 
             options.Handlers[messageType] = new InstanceCachingFactory<IAbstractHandler>(p =>
             {
-                var providerType = typeof(TriggerEventHandler);
-                var provider = ActivatorUtilities.CreateInstance(p, providerType, runId);
+                var providerType = typeof(EventTriggeredHandler);
+                var provider = ActivatorUtilities.CreateInstance(p, providerType);
                 return (IAbstractHandler)provider;
             });
         }

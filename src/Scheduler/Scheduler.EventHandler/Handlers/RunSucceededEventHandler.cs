@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Assistant.Net.Scheduler.EventHandler.Handlers;
 
-internal class RunSucceededEventHandler : IMessageHandler<RunSucceededEvent>
+internal sealed class RunSucceededEventHandler : IMessageHandler<RunSucceededEvent>
 {
     private readonly ILogger logger;
     private readonly IMessagingClient client;
@@ -23,14 +23,21 @@ internal class RunSucceededEventHandler : IMessageHandler<RunSucceededEvent>
 
     public async Task Handle(RunSucceededEvent @event, CancellationToken token)
     {
+        logger.LogDebug("Run({RunId}) orchestration: begins.", @event.RunId);
+
         var run = await client.Request(new RunQuery(@event.RunId), token);
         if (run.NextRunId != null)
         {
-            logger.LogInformation("Run({AutomationId}/{RunId}): succeeded.", run.AutomationId, run.Id);
+            await client.Request(new RunStartCommand(run.NextRunId.Value), token);
+            logger.LogInformation("Run({AutomationId}, {RunId}) orchestration: ends the run of automation.",
+                run.AutomationId, run.Id);
             return;
         }
 
+        logger.LogInformation("Run({AutomationId}, {RunId}) orchestration: ends automation run.", run.AutomationId, run.Id);
+
         var nextRunId = await client.Request(new RunCreateCommand(run.AutomationId), token);
-        logger.LogInformation("Run({AutomationId}/{RunId}): automation restarted.", run.AutomationId, nextRunId);
+        logger.LogInformation("Run({AutomationId}, {RunId}) orchestration: restarted the automation with the run.",
+            run.AutomationId, nextRunId);
     }
 }

@@ -1,4 +1,6 @@
-﻿using Assistant.Net.DataAnnotations;
+﻿using Assistant.Net.Abstractions;
+using Assistant.Net.DataAnnotations;
+using Assistant.Net.RetryStrategies;
 using System;
 
 namespace Assistant.Net.Scheduler.Trigger.Options;
@@ -6,12 +8,12 @@ namespace Assistant.Net.Scheduler.Trigger.Options;
 /// <summary>
 ///     Timer triggering configuration options.
 /// </summary>
-public class TimerOptions
+public sealed class TimerTriggerOptions
 {
     /// <summary>
     ///     Time to delay if no triggers to schedule were found.
     /// </summary>
-    [Time("00:00:01", "23:59:59")]
+    [Time("00:00:00.001", "23:59:59")]
     public TimeSpan InactivityDelayTime { get; set; } = TimeSpan.FromSeconds(5);
 
     /// <summary>
@@ -21,8 +23,7 @@ public class TimerOptions
     public TimeSpan TriggeredTimerExpirationTime { get; set; } = TimeSpan.FromDays(1);
 
     /// <summary>
-    ///     Delay between cancellation was requested and actually called.
+    ///     Timer trigger scheduling retry strategy.
     /// </summary>
-    [Time("00:00:00", "00:30:00")]
-    public TimeSpan CancellationDelay { get; set; } = TimeSpan.FromSeconds(30);
+    public IRetryStrategy Retry { get; set; } = new ConstantBackoff {MaxAttemptNumber = 6, Interval = TimeSpan.FromSeconds(5)};
 }

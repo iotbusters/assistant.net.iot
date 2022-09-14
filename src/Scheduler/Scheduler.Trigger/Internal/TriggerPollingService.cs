@@ -1,178 +1,160 @@
-﻿using Assistant.Net.Abstractions;
-using Assistant.Net.Messaging.Abstractions;
-using Assistant.Net.Scheduler.Contracts.Commands;
-using Assistant.Net.Scheduler.Contracts.Enums;
-using Assistant.Net.Scheduler.Contracts.Events;
-using Assistant.Net.Scheduler.Contracts.Queries;
-using Assistant.Net.Scheduler.Trigger.Models;
-using Assistant.Net.Scheduler.Trigger.Options;
-using Assistant.Net.Storage.Abstractions;
-using Assistant.Net.Unions;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+﻿//using Assistant.Net.Abstractions;
+//using Assistant.Net.Messaging.Abstractions;
+//using Assistant.Net.Messaging.HealthChecks;
+//using Assistant.Net.Scheduler.Contracts.Events;
+//using Assistant.Net.Scheduler.Contracts.Queries;
+//using Assistant.Net.Scheduler.Trigger.Abstractions;
+//using Assistant.Net.Scheduler.Trigger.Options;
+//using Microsoft.Extensions.Hosting;
+//using Microsoft.Extensions.Logging;
+//using Microsoft.Extensions.Options;
+//using System;
+//using System.Collections.Generic;
+//using System.Linq;
+//using System.Threading;
+//using System.Threading.Tasks;
 
-namespace Assistant.Net.Scheduler.Trigger.Internal;
+//namespace Assistant.Net.Scheduler.Trigger.Internal;
 
-internal class TriggerPollingService : BackgroundService
-{
-    private readonly HashSet<Guid> unsupportedRunIds = new();
-    private Dictionary<Guid, Type> events = new();
+//internal sealed class TriggerPollingService : BackgroundService
+//{
+//    private readonly HashSet<Guid> unsupportedRunIds = new();
+//    private Dictionary<Type, IList<Guid>> eventTriggers = new();
 
-    private readonly ILogger logger;
-    private readonly IOptionsMonitor<TriggerPollingOptions> options;
-    private readonly ReloadableMessagingClientOptionsSource eventSource;
-    private readonly IStorage<Guid, TriggerTimerModel> storage;
-    private readonly IMessagingClient client;
-    private readonly ISystemClock clock;
-    private readonly ITypeEncoder typeEncoder;
+//    private readonly ILogger logger;
+//    private readonly IOptionsMonitor<TriggerPollingOptions> options;
+//    private readonly ReloadableEventTriggerOptionsSource eventTriggerOptionsSource;
+//    private readonly ITypeEncoder typeEncoder;
+//    private readonly ISystemClock clock;
+//    private readonly ISystemLifetime lifetime;
+//    private readonly IMessagingClient client;
+//    private readonly ITimerScheduler scheduler;
+//    private readonly ServerActivityService activityService;
 
-    private readonly CancellationTokenSource gracefulShutdownSource = new();
-    private CancellationTokenRegistration registration;
+//    public TriggerPollingService(
+//        ILogger<TriggerPollingService> logger,
+//        IOptionsMonitor<TriggerPollingOptions> options,
+//        ReloadableEventTriggerOptionsSource eventTriggerOptionsSource,
+//        ITypeEncoder typeEncoder,
+//        ISystemClock clock,
+//        ISystemLifetime lifetime,
+//        IMessagingClient client,
+//        ITimerScheduler scheduler,
+//        ServerActivityService activityService)
+//    {
+//        this.logger = logger;
+//        this.options = options;
+//        this.eventTriggerOptionsSource = eventTriggerOptionsSource;
+//        this.typeEncoder = typeEncoder;
+//        this.clock = clock;
+//        this.lifetime = lifetime;
+//        this.client = client;
+//        this.scheduler = scheduler;
+//        this.activityService = activityService;
+//    }
 
-    public TriggerPollingService(
-        ILogger<TriggerPollingService> logger,
-        IOptionsMonitor<TriggerPollingOptions> options,
-        ReloadableMessagingClientOptionsSource eventSource,
-        IStorage<Guid, TriggerTimerModel> storage,
-        ITypeEncoder typeEncoder,
-        IMessagingClient client,
-        ISystemClock clock)
-    {
-        this.logger = logger;
-        this.options = options;
-        this.eventSource = eventSource;
-        this.storage = storage;
-        this.typeEncoder = typeEncoder;
-        this.client = client;
-        this.clock = clock;
-    }
+//    protected override async Task ExecuteAsync(CancellationToken token)
+//    {
+//        logger.LogInformation("Polling triggers: begins.");
 
-    public override Task StartAsync(CancellationToken token)
-    {
-        registration = token.Register(() => gracefulShutdownSource.CancelAfter(options.CurrentValue.CancellationDelay));
-        return base.StartAsync(token);
-    }
+//        var stoppingToken = lifetime.Stopping;
+//        var serverOptions = options.CurrentValue;
+//        var strategy = serverOptions.Retry;
+//        var attempt = 1;
 
-    public override void Dispose()
-    {
-        registration.Dispose();
-        gracefulShutdownSource.Dispose();
-        base.Dispose();
-    }
+//        while (!stoppingToken.IsCancellationRequested)
+//        {
+//            await activityService.DelayInactive(token);
 
-    protected override async Task ExecuteAsync(CancellationToken token)
-    {
-        logger.LogInformation("Start polling triggers resource.");
+//            try
+//            {
+//                await ReloadAsync(token);
+//            }
+//            catch (OperationCanceledException ex) when (token.IsCancellationRequested)
+//            {
+//                logger.LogWarning(ex, "Polling triggers: cancelled.");
+//                break;
+//            }
+//            catch(Exception ex)
+//            {
+//                attempt++;
+//                if (!strategy.CanRetry(attempt))
+//                {
+//                    logger.LogCritical(ex, "Polling triggers: failed.");
+//                    break;
+//                }
 
-        while (!token.IsCancellationRequested)
-        {
-            try
-            {
-                await ReloadAsync(gracefulShutdownSource.Token);
-            }
-            catch (OperationCanceledException) when (token.IsCancellationRequested)
-            {
-                continue;
-            }
+//                logger.LogError(ex, "Polling triggers: #{Attempt} failed.", attempt);
 
-            await Task.WhenAny(Task.Delay(options.CurrentValue.InactivityDelayTime, token));
-        }
+//                await Task.WhenAny(Task.Delay(strategy.DelayTime(attempt), token));
+//                continue;
+//            }
 
-        logger.LogInformation("Stop polling triggers resource.");
-    }
+//            attempt = 1;
+//            await Task.WhenAny(Task.Delay(serverOptions.InactivityDelayTime, token));
+//        }
 
-    public async Task ReloadAsync(CancellationToken token)
-    {
-        logger.LogDebug("Reloading triggers to handle.");
+//        logger.LogInformation("Polling triggers: ends.");
+//    }
 
-        var references = await client.Request(new TriggerReferencesQuery(), token);
-        var latestRunIds = references.Select(x => x.RunId).Except(unsupportedRunIds).ToHashSet();
+//    public async Task ReloadAsync(CancellationToken token)
+//    {
+//        logger.LogDebug("Reloading triggers: begins.");
 
-        var previousEventTypes = events;
-        var previousRunIds = previousEventTypes.Keys;
-        if (latestRunIds.SequenceEqual(previousRunIds))
-        {
-            logger.LogDebug("No new triggers were found.");
-            return;
-        }
+//        var references = await client.Request(new TriggerReferencesQuery(), token);
+//        var latestRunIds = references.Select(x => x.RunId).Except(unsupportedRunIds).ToHashSet();
 
-        var supportedEventTypes = await GetSupportedEventTypes(latestRunIds, previousRunIds, token);
-        if (!supportedEventTypes.Any())
-            logger.LogWarning("No new trigger events were found.");
+//        var previousEventTypes = eventTriggers.SelectMany(x => x.Value.Select(id => (type: x.Key, id))).ToArray();
+//        var previousRunIds = previousEventTypes.Select(x => x.id).ToHashSet();
+//        if (latestRunIds.SequenceEqual(previousRunIds))
+//        {
+//            logger.LogDebug("No new triggers were found.");
+//            return;
+//        }
 
-        events = (
-                from id in latestRunIds
-                join pet in previousEventTypes on id equals pet.Key into pets
-                join set in supportedEventTypes on id equals set.Key into sets
-                let type = pets.FirstOrDefault().Value ?? sets.FirstOrDefault().Value
-                where type != null
-                select (id, type))
-            .ToDictionary(x => x.id, x => x.type);
-        eventSource.Reload(events);
+//        var newRunIds = latestRunIds.Except(previousRunIds);
+//        var supportedEventTriggers = await GetEventTriggers(newRunIds, token);
+//        if (!supportedEventTriggers.Any())
+//            logger.LogWarning("No new trigger events were found.");
 
-        logger.LogInformation("Reloaded supported trigger events {TotalEventCount} (+{NewEventCount}/-{OldEventCount}) to handle.",
-            events.Count, supportedEventTypes.Count, Math.Max(0, previousEventTypes.Count - events.Count));
+//        eventTriggers = (
+//                from id in latestRunIds
+//                join pet in previousEventTypes on id equals pet.id into pets
+//                join set in supportedEventTriggers on id equals set.id into sets
+//                from e in pets.Concat(sets)
+//                select e)
+//            .GroupBy(x => x.type, x => x.id).ToDictionary(x => x.Key, x => (IList<Guid>)x.ToList());
+//        eventTriggerOptionsSource.Reload(eventTriggers);
 
-        var timerRunIds = supportedEventTypes.Where(x => x.Value == typeof(TimerTriggeredEvent)).Select(x => x.Key);
-        await ScheduleTimers(timerRunIds, token);
-    }
+//        if (eventTriggers.Any())
+//            logger.LogInformation("Reloading triggers: configured {TotalCount} ({NewCount}/{OldCount}).",
+//                eventTriggers.Count, supportedEventTriggers.Length, Math.Max(0, previousEventTypes.Length - eventTriggers.Count));
+//        else
+//            logger.LogDebug("Reloading triggers: not found.");
 
-    private async Task<Dictionary<Guid, Type>> GetSupportedEventTypes(
-        IEnumerable<Guid> latestRunIds,
-        IEnumerable<Guid> previousRunIds,
-        CancellationToken token)
-    {
-        var triggerQueryTasks = latestRunIds
-            .Except(previousRunIds)
-            .Select(x => client.Request(new TriggerQuery(x), token));
-        var triggers = await Task.WhenAll(triggerQueryTasks);
+//        var timerRunIds = supportedEventTriggers.Where(x => x.type == typeof(TimerTriggeredEvent)).Select(x => x.id).Distinct();
+//        foreach (var runId in timerRunIds)
+//            await scheduler.ScheduleTimer(runId, token);
 
-        var triggerConfigurations = triggers
-            .Select(x => (id: x.RunId, name: x.TriggerEventName, type: typeEncoder.Decode(x.TriggerEventName)))
-            .ToArray();
+//        logger.LogInformation("Reloading triggers: ends.");
+//    }
 
-        var unsupportedConfigurations = triggerConfigurations.Where(x => x.type == null).ToArray();
-        foreach (var @event in unsupportedConfigurations)
-        {
-            unsupportedRunIds.Add(@event.id);
-            logger.LogError("Unknown {EventName} ({RunId}) is ignored.", @event.name, @event.id);
-        }
+//    private async Task<(Type type, Guid id)[]> GetEventTriggers(IEnumerable<Guid> runIds, CancellationToken token)
+//    {
+//        var triggerQueryTasks = runIds.Select(x => client.Request(new TriggerQuery(x), token));
+//        var triggers = await Task.WhenAll(triggerQueryTasks);
 
-        return triggerConfigurations.Where(x => x.type != null).ToDictionary(x => x.id, x => x.type!);
-    }
+//        var triggerConfigurations = triggers
+//            .Select(x => (id: x.RunId, name: x.TriggerEventName, type: typeEncoder.Decode(x.TriggerEventName)))
+//            .ToArray();
 
-    private async Task ScheduleTimers(IEnumerable<Guid> timerRunIds, CancellationToken token)
-    {
-        var runQueryTasks = timerRunIds.Select(x => client.Request(new RunQuery(x), token));
-        var runs = await Task.WhenAll(runQueryTasks);
+//        var unsupportedConfigurations = triggerConfigurations.Where(x => x.type == null).ToArray();
+//        foreach (var (id, name, _) in unsupportedConfigurations)
+//        {
+//            unsupportedRunIds.Add(id);
+//            logger.LogError("Unknown {MessageType} ({RunId}) is ignored.", name, id);
+//        }
 
-        var timers = runs
-            .Where(x => x.Status.Value == RunStatus.Started)
-            .Where(x => x.JobSnapshot.Configuration is JobTimerConfigurationDto)
-            .Select(x => (RunId: x.Id, JobId: x.JobSnapshot.Id, Configuration: (JobTimerConfigurationDto) x.JobSnapshot.Configuration))
-            .ToArray();
-
-        foreach (var timer in timers)
-        {
-            if (await storage.TryGet(timer.JobId, token) is not Some<TriggerTimerModel>({IsTriggered : false}))
-                continue;
-
-            await storage.AddOrUpdate(
-                key: timer.JobId,
-                addFactory: _ => new(timer.RunId, timer.Configuration.NextTriggerTime(clock.UtcNow), IsTriggered: false),
-                updateFactory: (_, last) => new(timer.RunId, timer.Configuration.NextTriggerTime(last.Arranged), IsTriggered: false),
-                token);
-        }
-
-        if (timers.Any())
-            logger.LogInformation("Configured {NewTimerCount} to trigger.", timers.Length);
-        else
-            logger.LogDebug("No new trigger timers were found.");
-    }
-}
+//        return triggerConfigurations.Where(x => x.type != null).Select(x => (x.type!, x.id)).ToArray();
+//    }
+//}
