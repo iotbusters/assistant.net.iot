@@ -11,7 +11,7 @@
   <ItemGroup>
     <PackageReference Include="assistant.net.messaging.sqlite.client" Version="0.4.144" />
     <PackageReference Include="assistant.net.messaging.sqlite.server" Version="0.4.144" />
-    <PackageReference Include="coverlet.collector" Version="3.1.2">
+    <PackageReference Include="coverlet.collector" Version="3.2.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
