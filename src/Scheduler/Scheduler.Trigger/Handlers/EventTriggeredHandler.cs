@@ -57,7 +57,7 @@ internal sealed class EventTriggeredHandler : IAbstractHandler
             var trigger = await client.Request(new TriggerQuery(runId), token);
             if (!trigger.IsActive)
             {
-                logger.LogCritical("Trigger({MessageType}, {RunId}): inactive.", messageName, runId);
+                logger.LogWarning("Trigger({MessageType}, {RunId}): inactive.", messageName, runId);
                 continue;
             }
 
@@ -72,7 +72,6 @@ internal sealed class EventTriggeredHandler : IAbstractHandler
             logger.LogDebug("Trigger({MessageType}, {RunId}) processing: matched.", messageName, runId);
 
             await client.Request(new RunSucceedCommand(runId), token);
-            // todo: ReloadableEventTriggerOptionsSource.Remove(runId);
 
             logger.LogInformation("Trigger({MessageType}, {RunId}) processing: ends.", messageName, runId);
             return;

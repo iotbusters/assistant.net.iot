@@ -11,5 +11,5 @@ public sealed class EventTriggerOptions
     /// <summary>
     ///     List of monitoring published event-messages to trigger associated run.
     /// </summary>
-    public IDictionary<Type, IList<Guid>> EventTriggers { get; set; } = null!;
+    public IDictionary<Type, ISet<Guid>> EventTriggers { get; set; } = null!;
 }

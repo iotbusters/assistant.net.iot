@@ -1,5 +1,6 @@
 ﻿using Assistant.Net.Abstractions;
 using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Messaging.Options;
 using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Enums;
 using Assistant.Net.Scheduler.Contracts.Events;
@@ -7,6 +8,7 @@ using Assistant.Net.Scheduler.Contracts.Queries;
 using Assistant.Net.Scheduler.Trigger.Abstractions;
 using Assistant.Net.Scheduler.Trigger.Models;
 using Assistant.Net.Storage.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -22,22 +24,33 @@ internal sealed class TimerScheduler : ITimerScheduler
     private readonly ISystemClock clock;
     private readonly IMessagingClient client;
     private readonly IAdminStorage<Guid, TriggerTimerModel> storage;
+    private readonly IServiceProvider provider;
     private readonly ConcurrentDictionary<Guid, Task> scheduledTasks = new();
+
+    private bool isStarted;
 
     public TimerScheduler(
         ILogger<TimerScheduler> logger,
         ISystemClock clock,
         IMessagingClient client,
-        IAdminStorage<Guid, TriggerTimerModel> storage)
+        IAdminStorage<Guid, TriggerTimerModel> storage,
+        IServiceProvider provider)
     {
         this.logger = logger;
         this.clock = clock;
         this.client = client;
         this.storage = storage;
+        this.provider = provider;
     }
 
-    public async Task RescheduleTimers(CancellationToken token)
+    public async Task Start(CancellationToken token)
     {
+        // thread unsafe.
+        if (isStarted)
+            return;
+
+        isStarted = true;
+
         logger.LogDebug("Query timers: begins.");
 
         var runIds = await storage.GetKeys(token).ToArrayAsync(token);
@@ -54,6 +67,7 @@ internal sealed class TimerScheduler : ITimerScheduler
             await ScheduleTimer(runId, token);
 
         logger.LogInformation("Query timers: ends.");
+
     }
 
     public async Task ScheduleTimer(Guid runId, CancellationToken token)
@@ -80,9 +94,10 @@ internal sealed class TimerScheduler : ITimerScheduler
         var task = Schedule(runId, configuration, rollbackCancellationSource.Token)
             .ContinueWith(x =>
             {
-                if (x.IsFaulted)
-                    logger.LogCritical("");
-                return scheduledTasks.TryRemove(runId, out _);
+                if (x is {IsFaulted: true, Exception: { }})
+                    foreach (var exception in x.Exception.InnerExceptions)
+                        logger.LogCritical(exception, "Schedule timer: failed.");
+                scheduledTasks.TryRemove(runId, out _);
             }, CancellationToken.None);
 
         if (!scheduledTasks.TryAdd(runId, task))
@@ -119,8 +134,17 @@ internal sealed class TimerScheduler : ITimerScheduler
         else
             logger.LogWarning("Trigger timer: begins late.");
 
-        var triggered = clock.UtcNow;
-        await client.Publish(new TimerTriggeredEvent(timer.RunId, timer.Arranged, scheduled, triggered), token);
+        try
+        {
+            using var internalScope = provider.CreateScopeWithNamedOptionContext(GenericOptionsNames.DefaultName);
+            var internalClient = internalScope.ServiceProvider.GetRequiredService<IMessagingClient>();
+            var triggered = clock.UtcNow;
+            await internalClient.Publish(new TimerTriggeredEvent(timer.RunId, timer.Arranged, scheduled, triggered), token);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Trigger timer: failed.");
+        }
 
         await storage.TryRemove(timer.RunId, token);
 

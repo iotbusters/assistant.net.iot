@@ -20,7 +20,7 @@ internal sealed class TimerTriggerService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken token)
     {
-        await service.ReconfigureEventTriggers(token);
-        await scheduler.RescheduleTimers(token);
+        await service.ReloadEventTriggers(token);
+        await scheduler.Start(token);
     }
 }

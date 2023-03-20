@@ -10,7 +10,7 @@ namespace Assistant.Net.Scheduler.Trigger.Internal;
 /// </summary>
 internal sealed class ReloadableEventTriggerOptionsSource : ConfigureOptionsSourceBase<EventTriggerOptions>
 {
-    private static IDictionary<Type, IList<Guid>> knownEventTriggers = new Dictionary<Type, IList<Guid>>();
+    private IDictionary<Type, ISet<Guid>> knownEventTriggers = new Dictionary<Type, ISet<Guid>>();
 
     public override void Configure(EventTriggerOptions options) =>
         options.EventTriggers = knownEventTriggers;
@@ -19,7 +19,7 @@ internal sealed class ReloadableEventTriggerOptionsSource : ConfigureOptionsSour
     ///     Triggers message type handling configuration renewal.
     /// </summary>
     /// <param name="eventTriggers">Known event-message types and associated run IDs to handle.</param>
-    public void Reload(IDictionary<Type, IList<Guid>> eventTriggers)
+    public void Reload(IDictionary<Type, ISet<Guid>> eventTriggers)
     {
         knownEventTriggers = eventTriggers;
 
@@ -36,7 +36,15 @@ internal sealed class ReloadableEventTriggerOptionsSource : ConfigureOptionsSour
         if (knownEventTriggers.TryGetValue(eventType, out var list))
             list.Add(runId);
         else
-            knownEventTriggers.Add(eventType, new List<Guid> {runId});
+            knownEventTriggers.Add(eventType, new HashSet<Guid> {runId});
+
+        Reload();
+    }
+
+    public void Remove(Type eventType, Guid runId)
+    {
+        if (knownEventTriggers.TryGetValue(eventType, out var list))
+            list.Remove(runId);
 
         Reload();
     }
