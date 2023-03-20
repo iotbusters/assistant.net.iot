@@ -55,7 +55,12 @@ public sealed class RunLocalHandlerTests
         var configuration = new JobEventConfigurationDto(eventName: "Event", eventMask: new Dictionary<string, string>());
         var job = new JobModel(id: Guid.NewGuid(), name: "name", configuration);
         var automation = new AutomationModel(id: Guid.NewGuid(), name: "name", jobs: new[] {new AutomationJobReferenceModel(job.Id)});
-        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder().Store(job.Id, job).Store(automation.Id, automation).Build();
+        var triggerHandler = new TestMessageHandler<TriggerCreatedEvent, Nothing>(Nothing.Instance);
+        using var fixture = new SchedulerLocalApiHandlerFixtureBuilder()
+            .Store(job.Id, job)
+            .Store(automation.Id, automation)
+            .ReplaceHandler(triggerHandler)
+            .Build();
 
         var command = new RunCreateCommand(automation.Id);
         var runId = await fixture.Handle(command);
@@ -67,6 +72,7 @@ public sealed class RunLocalHandlerTests
         var createdTrigger = await fixture.GetOrDefault<Guid, TriggerModel>(runId);
         createdTrigger.Should().BeEquivalentTo(
             new TriggerModel(runId, isActive: true, configuration.EventName, configuration.EventMask));
+        triggerHandler.Request.Should().BeEquivalentTo(new TriggerCreatedEvent(runId));
     }
 
     [Test]
@@ -111,11 +117,13 @@ public sealed class RunLocalHandlerTests
             isActive: true,
             triggerEventName: "Event",
             triggerEventMask: new Dictionary<string, string>());
-        var handler = new TestMessageHandler<RunSucceededEvent, Nothing>(Nothing.Instance);
+        var runHandler = new TestMessageHandler<RunSucceededEvent, Nothing>(Nothing.Instance);
+        var triggerHandler = new TestMessageHandler<TriggerDeactivatedEvent, Nothing>(Nothing.Instance);
         using var fixture = new SchedulerLocalApiHandlerFixtureBuilder()
-            .ReplaceHandler(handler)
             .Store(run.Id, run)
             .Store(run.Id, trigger)
+            .ReplaceHandler(runHandler)
+            .ReplaceHandler(triggerHandler)
             .Build();
 
         var command = new RunSucceedCommand(run.Id);
@@ -123,7 +131,7 @@ public sealed class RunLocalHandlerTests
 
         var value = await fixture.GetOrDefault<Guid, RunModel>(run.Id);
         value.Should().BeEquivalentTo(run.WithStatus(RunStatus.Succeeded));
-        handler.Request.Should().BeEquivalentTo(new RunSucceededEvent(run.Id));
+        runHandler.Request.Should().BeEquivalentTo(new RunSucceededEvent(run.Id));
     }
 
     [Test]
@@ -147,11 +155,13 @@ public sealed class RunLocalHandlerTests
             triggerEventMask: new Dictionary<string, string>());
 
         var storage = new TestStorage<Guid, RunModel> {{run.Id, run}};
-        var handler = new TestMessageHandler<RunFailedEvent, Nothing>(Nothing.Instance);
+        var runHandler = new TestMessageHandler<RunFailedEvent, Nothing>(Nothing.Instance);
+        var triggerHandler = new TestMessageHandler<TriggerDeactivatedEvent, Nothing>(Nothing.Instance);
         using var fixture = new SchedulerLocalApiHandlerFixtureBuilder()
-            .ReplaceHandler(handler)
             .ReplaceStorage(storage)
             .ReplaceStorage(new TestStorage<Guid, TriggerModel> {{run.Id, trigger}})
+            .ReplaceHandler(runHandler)
+            .ReplaceHandler(triggerHandler)
             .Build();
 
         var command = new RunFailCommand(run.Id);
@@ -159,7 +169,8 @@ public sealed class RunLocalHandlerTests
 
         var value = await storage.GetOrDefault(run.Id);
         value.Should().BeEquivalentTo(run.WithStatus(RunStatus.Failed));
-        handler.Request.Should().BeEquivalentTo(new RunFailedEvent(run.Id));
+        runHandler.Request.Should().BeEquivalentTo(new RunFailedEvent(run.Id));
+        triggerHandler.Request.Should().BeEquivalentTo(new TriggerDeactivatedEvent(run.Id));
     }
 
     [Test]

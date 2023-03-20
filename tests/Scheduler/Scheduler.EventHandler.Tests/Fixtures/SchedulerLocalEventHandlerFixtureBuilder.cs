@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 
 namespace Assistant.Net.Scheduler.EventHandler.Tests.Fixtures;
 
@@ -18,12 +19,14 @@ public sealed class SchedulerLocalEventHandlerFixtureBuilder
         new Startup(configuration).ConfigureServices(services);
         services.RemoveAll(typeof(IHostedService));
         services
+            .AddSingleton<IHostEnvironment>(_ => new HostingEnvironment { ApplicationName = "test" })
             .AddTypeEncoder(o => o
                 .Exclude("Newtonsoft")
                 .Exclude("NUnit")
                 .Exclude("MongoDB")
                 .Exclude("SharpCompress"))
-            .ConfigureGenericMessageHandling(b => b.UseLocal());
+            .ConfigureGenericMessageHandling(b => b.UseLocal())
+            .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b.UseLocalSingleProvider());
     }
 
     public SchedulerLocalEventHandlerFixtureBuilder ReplaceHandler(object handler)

@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Scheduler.Contracts.Commands;
+﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Events;
 using Assistant.Net.Scheduler.Contracts.Exceptions;
 using Assistant.Net.Scheduler.Contracts.Models;
@@ -43,10 +44,12 @@ public sealed class RunSucceededEventHandlerTests
             throw new NotFoundException();
         });
         var handler2 = new TestMessageHandler<RunCreateCommand, Guid>(Guid.NewGuid());
+        var handler3 = new TestMessageHandler<RunStartCommand, Nothing>(Nothing.Instance);
         using var fixture = new SchedulerRemoteEventHandlerFixtureBuilder()
             .UseSqlite(SetupSqlite.ConnectionString)
             .ReplaceRemoteHandler(handler1)
             .ReplaceRemoteHandler(handler2)
+            .ReplaceRemoteHandler(handler3)
             .Build();
 
         await fixture.Handle(new RunSucceededEvent(run.Id));

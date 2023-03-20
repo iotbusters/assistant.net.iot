@@ -4,6 +4,8 @@ using Assistant.Net.Storage.Abstractions;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using System;
 
 namespace Assistant.Net.Scheduler.Api.Tests.Fixtures;
@@ -19,12 +21,14 @@ public sealed class SchedulerLocalApiHandlerFixtureBuilder
         var configuration = new ConfigurationBuilder().Build();
         new Startup(configuration).ConfigureServices(services);
         services
+            .AddSingleton<IHostEnvironment>(_ => new HostingEnvironment {ApplicationName = "test"})
             .AddTypeEncoder(o => o
                 .Exclude("Newtonsoft")
                 .Exclude("NUnit")
                 .Exclude("MongoDB")
                 .Exclude("SharpCompress"))
-            .ConfigureGenericMessageHandling(b => b.UseLocal());
+            .ConfigureGenericMessageHandling(b => b.UseLocal())
+            .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b.UseLocalSingleProvider());
     }
 
     public SchedulerLocalApiHandlerFixtureBuilder Store<TKey, TValue>(TKey key, TValue value)

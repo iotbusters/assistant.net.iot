@@ -52,6 +52,7 @@ public sealed class SchedulerRemoteEventHandlerFixtureBuilder
                     .Exclude("SharpCompress"))
                 .AddGenericMessageHandling()
                 .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b
+                    .UseLocalSingleProvider()
                     .TimeoutIn(TimeSpan.FromSeconds(5))
                     .DebuggerTimeout()
                     .RemoveInterceptor<CachingInterceptor>()

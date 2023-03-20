@@ -103,6 +103,19 @@ public sealed class RemoteHandlerFixtureBuilder<TStartup> where TStartup : class
         return this;
     }
 
+    public RemoteHandlerFixtureBuilder<TStartup> ReplaceLocalHandler(object handlerInstance)
+    {
+        hostBuilderConfigurations += (_, s) => s.ConfigureMessagingClient(b =>
+            b.AddHandler(handlerInstance));
+        return this;
+    }
+
+    public RemoteHandlerFixtureBuilder<TStartup> AddRegistrationOnly<TMessage>()
+    {
+        services.ConfigureMessagingClient(b => b.AddSingle(typeof(TMessage)));
+        return this;
+    }
+
     public RemoteHandlerFixtureBuilder<TStartup> ConfigureServer(Action<IServiceCollection> configureServices)
     {
         hostBuilderConfigurations += (_, s) => configureServices(s);

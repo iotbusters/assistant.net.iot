@@ -1,4 +1,5 @@
-﻿using Assistant.Net.Scheduler.Contracts.Commands;
+﻿using Assistant.Net.Messaging.Abstractions;
+using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Events;
 using Assistant.Net.Scheduler.Contracts.Exceptions;
 using Assistant.Net.Scheduler.Contracts.Models;
@@ -42,15 +43,18 @@ public sealed class RunSucceededEventHandlerTests
             throw new NotFoundException();
         });
         var handler2 = new TestMessageHandler<RunCreateCommand, Guid>(response: Guid.NewGuid());
+        var handler3 = new TestMessageHandler<RunStartCommand, Nothing>(response: Nothing.Instance);
         using var fixture = new SchedulerLocalEventHandlerFixtureBuilder()
             .ReplaceHandler(handler1)
             .ReplaceHandler(handler2)
+            .ReplaceHandler(handler3)
             .Build();
 
         await fixture.Handle(new RunSucceededEvent(run.Id));
 
         handler1.Requests.Should().BeEquivalentTo(new[] {new RunQuery(run.Id)});
         handler2.Requests.Should().BeEmpty();
+        handler3.Requests.Should().HaveCount(1);
     }
 
     private static RunModel HasRunTrigger(Guid runId, Guid? nextRunId = null) => new(

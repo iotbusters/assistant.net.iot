@@ -3,6 +3,7 @@ using Assistant.Net.Messaging.HealthChecks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using System.Threading;
 
 namespace Assistant.Net.Test.Common.Fixtures;
 
@@ -15,14 +16,10 @@ public sealed class RemoteHandlerFixture : IDisposable
     {
         this.clientProvider = clientProvider;
         this.host = host;
-        // todo: remove explicit calls after package update
-        var activityService = HostService<ServerActivityService>();
-        activityService.Activate();
         var availabilityService = HostService<ServerAvailabilityService>();
         availabilityService.Register(timeToLive: TimeSpan.FromSeconds(1), default);
-        // todo: uncomment after package update
-        //var activityService = HostService<ServerActivityService>();
-        //SpinWait.SpinUntil(() => activityService.IsActivationRequested, timeout: TimeSpan.FromSeconds(1));
+        var activityService = HostService<ServerActivityService>();
+        SpinWait.SpinUntil(() => activityService.IsActivationRequested, timeout: TimeSpan.FromSeconds(1));
     }
 
     public IMessagingClient Client => clientProvider.GetRequiredService<IMessagingClient>();
