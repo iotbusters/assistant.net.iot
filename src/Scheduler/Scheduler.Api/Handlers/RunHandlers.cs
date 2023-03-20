@@ -74,51 +74,51 @@ internal sealed class RunHandlers :
     {
         logger.LogDebug("Run({RunId}) starting: begins.", command.Id);
 
-        try
+        var run = await client.Request(new RunQuery(command.Id), token);
+        switch (run.JobSnapshot.Configuration)
         {
-            await storage.AddOrUpdate(
-                command.Id,
-                addFactory: _ => throw new NotFoundException(),
-                updateFactory: async (_, old) =>
+            case JobEventConfigurationDto:
+            case JobTimerConfigurationDto:
+                try
                 {
-                    var run = old.WithStatus(RunStatus.Started);
-                    switch (run.JobSnapshot.Configuration)
-                    {
-                        case JobEventConfigurationDto:
-                        case JobTimerConfigurationDto:
-                            await client.Request(new TriggerCreateCommand(run.Id), token);
-                            return run;
+                    await storage.AddOrUpdate(
+                        run.Id,
+                        addFactory: _ => throw new NotFoundException(),
+                        updateFactory: (_, old) => old.WithStatus(RunStatus.Started),
+                        token);
+                }
+                catch (StorageException ex) when (ex.InnerException is MessageException me)
+                {
+                    logger.LogCritical(me, "Run({RunId}) starting: failed.", run.Id);
+                    me.Throw();
+                }
 
-                        case JobActionConfigurationDto dto:
-                            try
-                            {
-                                await client.Request(dto.Action, token);
-                            }
-                            catch (Exception ex)
-                            {
-                                logger.LogError(ex, "Run({AutomationId}, {RunId}) starting: action failed.", run.AutomationId, run.Id);
-                                // todo
-                                await client.Publish(new RunFailedEvent(run.Id), token);
-                                return run;
-                            }
+                await client.Request(new TriggerCreateCommand(run.Id), token);
+                break;
 
-                            await client.Publish(new RunSucceededEvent(run.Id), token);
-                            return run;
+            case JobActionConfigurationDto dto:
+                try
+                {
+                    await client.Request(dto.Action, token);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Run({AutomationId}, {RunId}) starting: action failed.", run.AutomationId, run.Id);
 
-                        default:
-                            var jobConfigurationType = run.JobSnapshot.Configuration.GetType();
-                            throw new MessageFailedException(
-                                $"Run({run.AutomationId}, {run.Id}) starting: job type {jobConfigurationType} isn't supported.");
-                    }
-                }, token);
+                    await client.Request(new RunFailCommand(run.Id), token);
+                    break;
+                }
+
+                await client.Request(new RunSucceedCommand(run.Id), token);
+                break;
+
+            default:
+                var jobConfigurationType = run.JobSnapshot.Configuration.GetType();
+                throw new MessageFailedException(
+                    $"Run({run.AutomationId}, {run.Id}) starting: job type {jobConfigurationType} isn't supported.");
         }
-        catch (StorageException ex) when(ex.InnerException is MessageException me)
-        {
-            logger.LogCritical(me, "Run({RunId}) starting: failed.", command.Id);
-            me.Throw();
-        }
 
-        logger.LogInformation("Run({RunId}) starting: ends.", command.Id);
+        logger.LogInformation("Run({RunId}) starting: ends.", run.Id);
     }
 
     public async Task Handle(RunSucceedCommand command, CancellationToken token)
@@ -127,28 +127,25 @@ internal sealed class RunHandlers :
 
         try
         {
-            await storage.AddOrUpdate(
+            var run = await storage.AddOrUpdate(
                 command.Id,
                 addFactory: _ => throw new NotFoundException(),
-                updateFactory: async (_, old) =>
-                {
-                    var run = old.WithStatus(RunStatus.Succeeded);
-                    switch (run.JobSnapshot.Configuration)
-                    {
-                        case JobEventConfigurationDto:
-                        case JobTimerConfigurationDto:
-                            await client.Request(new TriggerDeactivateCommand(run.Id), token);
-                            await client.Publish(new RunSucceededEvent(run.Id), token);
-                            return run;
+                updateFactory: (_, old) => old.WithStatus(RunStatus.Succeeded), token);
+            switch (run.JobSnapshot.Configuration)
+            {
+                case JobEventConfigurationDto:
+                case JobTimerConfigurationDto:
+                    await client.Request(new TriggerDeactivateCommand(run.Id), token);
+                    break;
 
-                        case JobActionConfigurationDto:
-                            await client.Publish(new RunSucceededEvent(run.Id), token);
-                            return run;
+                case JobActionConfigurationDto:
+                    break;
 
-                        default:
-                            throw new MessageFailedException($"Run({run.AutomationId}, {run.Id}) succeeding: job type isn't supported.");
-                    }
-                }, token);
+                default:
+                    throw new MessageFailedException($"Run({run.AutomationId}, {run.Id}) succeeding: job type isn't supported.");
+            }
+
+            await client.Publish(new RunSucceededEvent(run.Id), token);
         }
         catch (StorageException ex) when (ex.InnerException is MessageException me)
         {

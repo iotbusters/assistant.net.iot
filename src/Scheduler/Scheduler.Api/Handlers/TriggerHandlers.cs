@@ -66,9 +66,9 @@ internal sealed class TriggerHandlers :
             _ => throw new MessageContractException($"Run({run.Id}) doesn't have a trigger.")
         };
         await storage.AddOrGet(model.RunId, model, token);
-        await client.PublishObject(new TriggerCreatedEvent(model.RunId), token);
+        await client.Publish(new TriggerCreatedEvent(model.RunId), token);
 
-        return model.RunId; // todo: generate own ID
+        return model.RunId;
     }
 
     public async Task Handle(TriggerDeactivateCommand command, CancellationToken token)
@@ -86,8 +86,14 @@ internal sealed class TriggerHandlers :
             logger.LogCritical("Trigger({RunId}) deactivation: not found.", command.RunId);
             nfe.Throw();
         }
+
+        await client.Publish(new TriggerDeactivatedEvent(command.RunId), token);
     }
 
-    public async Task Handle(TriggerDeleteCommand command, CancellationToken token) =>
+    public async Task Handle(TriggerDeleteCommand command, CancellationToken token)
+    {
+        await client.Publish(new TriggerDeactivatedEvent(command.RunId), token);
+
         await storage.TryRemove(command.RunId, token);
+    }
 }

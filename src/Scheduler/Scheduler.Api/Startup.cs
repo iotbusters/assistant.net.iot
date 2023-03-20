@@ -43,23 +43,22 @@ public sealed class Startup
                 .AddPropertyScope("ApplicationName", p => p.GetRequiredService<IHostEnvironment>().ApplicationName)
                 .AddPropertyScope("Thread", () => Thread.CurrentThread.ManagedThreadId))
             .AddStorage(GenericOptionsNames.DefaultName, b => b
-                .UseMongo(ConfigureStorage)
-                .UseMongoSingleProvider()
                 .AddSingle<Guid, AutomationModel>()
                 .AddSingle<Guid, JobModel>()
                 .AddSingle<Guid, RunModel>()
                 .AddSingle<Guid, TriggerModel>())
+            .AddMessagingClient(GenericOptionsNames.DefaultName, b => b
+                .UseMongoSingleProvider()
+                .AddSingle<TriggerCreatedEvent>()
+                .AddSingle<TriggerDeactivatedEvent>()
+                .AddSingle<RunSucceededEvent>()
+                .AddSingle<RunFailedEvent>())
             .AddGenericMessageHandling(b => b
                 .UseMongo(ConfigureMessaging)
                 .AddHandler<AutomationHandlers>()
                 .AddHandler<JobHandlers>()
                 .AddHandler<RunHandlers>()
-                .AddHandler<TriggerHandlers>())
-            .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b
-                .AddSingle<TriggerCreatedEvent>()
-                .AddSingle<RunSucceededEvent>()
-                .AddSingle<RunFailedEvent>()
-            );
+                .AddHandler<TriggerHandlers>());
 
         // todo: implement authorization
         //services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme);
