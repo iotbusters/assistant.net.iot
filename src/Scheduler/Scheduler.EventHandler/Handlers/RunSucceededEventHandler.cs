@@ -29,15 +29,16 @@ internal sealed class RunSucceededEventHandler : IMessageHandler<RunSucceededEve
         if (run.NextRunId != null)
         {
             await client.Request(new RunStartCommand(run.NextRunId.Value), token);
-            logger.LogInformation("Run({AutomationId}, {RunId}) orchestration: ends the run of automation.",
+            logger.LogInformation("Run({AutomationId}, {RunId}) orchestration: ends the automation run.",
                 run.AutomationId, run.Id);
             return;
         }
 
-        logger.LogInformation("Run({AutomationId}, {RunId}) orchestration: ends automation run.", run.AutomationId, run.Id);
+        logger.LogInformation("Run({AutomationId}, {RunId}) orchestration: ends and restarts the automation.", run.AutomationId, run.Id);
 
         var nextRunId = await client.Request(new RunCreateCommand(run.AutomationId), token);
-        logger.LogInformation("Run({AutomationId}, {RunId}) orchestration: restarted the automation with the run.",
+
+        logger.LogInformation("Run({AutomationId}, {RunId}) orchestration: restarted the automation.",
             run.AutomationId, nextRunId);
     }
 }

@@ -28,12 +28,7 @@ public sealed class Startup
             .AddYamlConsole()
             .AddPropertyScope("ApplicationName", p => p.GetRequiredService<IHostEnvironment>().ApplicationName)
             .AddPropertyScope("Thread", () => Thread.CurrentThread.ManagedThreadId))
-        .AddGenericMessageHandling(b => b
-            .UseMongo(ConfigureMessaging)
-            //.AddHandler<TimerTriggeredEventHandler>()
-            .AddHandler<RunSucceededEventHandler>()
-            .AddHandler<RunFailedEventHandler>())
-        .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b
+        .AddMessagingClient(GenericOptionsNames.DefaultName, b => b
             .AddSingle<AutomationReferencesQuery>()
             .AddSingle<AutomationQuery>()
             .AddSingle<JobQuery>()
@@ -41,7 +36,11 @@ public sealed class Startup
             .AddSingle<RunCreateCommand>()
             .AddSingle<RunStartCommand>()
             .AddSingle<RunSucceedCommand>()
-            .AddSingle<RunDeleteCommand>());
+            .AddSingle<RunDeleteCommand>())
+        .AddGenericMessageHandling(b => b
+            .UseMongo(ConfigureMessaging)
+            .AddHandler<RunSucceededEventHandler>()
+            .AddHandler<RunFailedEventHandler>());
 
     private void ConfigureMessaging(MongoOptions options) => options
         .Connection(Configuration.GetConnectionString(ConfigurationNames.Messaging))
