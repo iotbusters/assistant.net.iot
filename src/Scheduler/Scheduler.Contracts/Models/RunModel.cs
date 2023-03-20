@@ -67,13 +67,14 @@ public sealed class RunModel
         {
             case (RunStatus.Scheduled, RunStatus.Started):
                 break;
-
+            case (RunStatus.Scheduled, RunStatus.Succeeded):
+                break;
+            case (RunStatus.Scheduled, RunStatus.Failed):
+                break;
             case (RunStatus.Started, RunStatus.Succeeded):
                 break;
-
             case (RunStatus.Started, RunStatus.Failed):
                 break;
-
             case var (a, b) when a == b:
                 return this;
 

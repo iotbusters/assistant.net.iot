@@ -14,14 +14,4 @@ public static class ConfigurationNames
     ///     Section name of storage connection name.
     /// </summary>
     public const string Database = "StorageDatabase";
-
-    /// <summary>
-    ///     Section name of trigger polling name.
-    /// </summary>
-    public const string TriggerPolling = "TriggerPolling";
-
-    /// <summary>
-    ///     Section name of trigger timer name.
-    /// </summary>
-    public static string TriggerTimer = "TriggerTimer";
 }
