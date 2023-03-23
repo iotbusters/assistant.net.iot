@@ -38,7 +38,7 @@ public sealed class SchedulerRemoteTriggerHandlerFixtureBuilder
         remoteHostBuilder = Host.CreateDefaultBuilder()
             .ConfigureServices((ctx, remoteServices) =>
             {
-                ctx.HostingEnvironment.ApplicationName = typeof(Startup).Assembly.GetName().Name;
+                ctx.HostingEnvironment.ApplicationName = typeof(Startup).Assembly.GetName().Name!;
                 new Startup(ctx.Configuration).ConfigureServices(remoteServices);
                 remoteServices
                     .AddTypeEncoder(o => o

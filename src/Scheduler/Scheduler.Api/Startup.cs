@@ -125,10 +125,10 @@ public sealed class Startup
     }
 
     private void ConfigureStorage(MongoOptions options) => options
-        .Connection(Configuration.GetConnectionString(ConfigurationNames.Database))
+        .Connection(Configuration.GetConnectionString(ConfigurationNames.Database)!)
         .Database(SchedulerMongoNames.DatabaseName);
 
     private void ConfigureMessaging(MongoOptions options) => options
-        .Connection(Configuration.GetConnectionString(ConfigurationNames.Messaging))
+        .Connection(Configuration.GetConnectionString(ConfigurationNames.Messaging)!)
         .Database(SchedulerMongoNames.DatabaseName);
 }

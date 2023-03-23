@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <RootNamespace>Assistant.Net.Test.Common</RootNamespace>
     <AssemblyName>assistant.net.test.common</AssemblyName>
     <Nullable>enable</Nullable>
@@ -9,11 +9,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.messaging.sqlite.client" Version="0.4.144" />
-    <PackageReference Include="assistant.net.messaging.sqlite.server" Version="0.4.144" />
+    <PackageReference Include="assistant.net.messaging.sqlite.client" Version="0.4.145" />
+    <PackageReference Include="assistant.net.messaging.sqlite.server" Version="0.4.145" />
     <PackageReference Include="NUnit" Version="3.13.3" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.8" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="7.0.4" />
   </ItemGroup>
 
 </Project>

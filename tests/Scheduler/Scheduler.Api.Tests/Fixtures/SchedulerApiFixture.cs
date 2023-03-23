@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Microsoft.Net.Http.Headers;
 using System;
 using System.IO;
 using System.Net.Http;
@@ -64,10 +63,7 @@ public sealed class SchedulerApiFixture : IDisposable
         };
     }
 
-    public StreamContent CreatedContent() => new(new MemoryStream())
-    {
-        Headers = { { HeaderNames.ContentLength, "0" } }
-    };
+    public StreamContent CreatedContent() => new(new MemoryStream());
 
     public StreamContent NoContent() => new(new MemoryStream());
 
