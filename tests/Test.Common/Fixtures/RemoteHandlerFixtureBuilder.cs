@@ -2,6 +2,7 @@
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.RetryStrategies;
+using Assistant.Net.Storage;
 using Assistant.Net.Test.Common.Mocks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -30,7 +31,6 @@ public sealed class RemoteHandlerFixtureBuilder<TStartup> where TStartup : class
                 .Exclude("SharpCompress"))
             .AddMessagingClient(b => b
                 .TimeoutIn(TimeSpan.FromSeconds(10))
-                .DebuggerTimeout()
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>())
             .ConfigureGenericHandlerProxyOptions(o => o.ResponsePoll = new ConstantBackoff
@@ -56,7 +56,6 @@ public sealed class RemoteHandlerFixtureBuilder<TStartup> where TStartup : class
                 .Exclude("SharpCompress"))
             .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b
                 .TimeoutIn(TimeSpan.FromSeconds(10))
-                .DebuggerTimeout()
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>())
             .ConfigureGenericHandlerProxyOptions(o => o.ResponsePoll = new ConstantBackoff

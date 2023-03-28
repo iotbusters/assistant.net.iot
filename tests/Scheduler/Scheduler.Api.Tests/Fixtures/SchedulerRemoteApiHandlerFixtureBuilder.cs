@@ -4,6 +4,7 @@ using Assistant.Net.Messaging.Models;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.RetryStrategies;
 using Assistant.Net.Scheduler.Api.Tests.Mocks;
+using Assistant.Net.Storage;
 using Assistant.Net.Storage.Abstractions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -30,7 +31,6 @@ public sealed class SchedulerRemoteApiHandlerFixtureBuilder
                 .Exclude("SharpCompress"))
             .AddMessagingClient(b => b
                 .TimeoutIn(TimeSpan.FromSeconds(10))
-                .DebuggerTimeout()
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>())
             .BindOptions(source)
@@ -42,7 +42,7 @@ public sealed class SchedulerRemoteApiHandlerFixtureBuilder
         remoteHostBuilder = Host.CreateDefaultBuilder()
             .ConfigureServices((ctx, s) =>
             {
-                ctx.HostingEnvironment.ApplicationName = typeof(Startup).Assembly.GetName().Name;
+                ctx.HostingEnvironment.ApplicationName = typeof(Startup).Assembly.GetName().Name!;
                 new Startup(ctx.Configuration).ConfigureServices(s);
             })
             .ConfigureServices(s => s
@@ -53,7 +53,6 @@ public sealed class SchedulerRemoteApiHandlerFixtureBuilder
                     .Exclude("SharpCompress"))
                 .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b
                     .TimeoutIn(TimeSpan.FromSeconds(10))
-                    .DebuggerTimeout()
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>())
                 .ConfigureGenericHandlerProxyOptions(o => o.ResponsePoll = new ConstantBackoff

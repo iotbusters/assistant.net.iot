@@ -1,6 +1,5 @@
 ﻿using Assistant.Net.Messaging;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Options;
 using Assistant.Net.Scheduler.Contracts;
 using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Queries;
@@ -10,6 +9,7 @@ using Assistant.Net.Scheduler.Trigger.Internal;
 using Assistant.Net.Scheduler.Trigger.Models;
 using Assistant.Net.Scheduler.Trigger.Options;
 using Assistant.Net.Storage;
+using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

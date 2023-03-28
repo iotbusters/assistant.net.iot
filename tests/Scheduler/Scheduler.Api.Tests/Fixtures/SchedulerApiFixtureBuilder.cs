@@ -25,7 +25,6 @@ public sealed class SchedulerApiFixtureBuilder
                 // disable interceptors
                 s.ConfigureMessagingClient(b => b
                     .TimeoutIn(TimeSpan.FromSeconds(1))
-                    .DebuggerTimeout()
                     .RemoveInterceptor<CachingInterceptor>()
                     .RemoveInterceptor<RetryingInterceptor>());
                 s.AddTypeEncoder(o => o

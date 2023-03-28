@@ -2,6 +2,7 @@
 using Assistant.Net.Messaging.Interceptors;
 using Assistant.Net.Messaging.Options;
 using Assistant.Net.RetryStrategies;
+using Assistant.Net.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -26,7 +27,6 @@ public sealed class SchedulerRemoteTriggerHandlerFixtureBuilder
                 .Exclude("SharpCompress"))
             .AddMessagingClient(b => b
                 .TimeoutIn(TimeSpan.FromSeconds(1))
-                .DebuggerTimeout()
                 .RemoveInterceptor<TimeoutInterceptor>()
                 .RemoveInterceptor<CachingInterceptor>()
                 .RemoveInterceptor<RetryingInterceptor>())
@@ -48,12 +48,10 @@ public sealed class SchedulerRemoteTriggerHandlerFixtureBuilder
                         .Exclude("SharpCompress"))
                     .ConfigureMessagingClient(b => b
                         .TimeoutIn(TimeSpan.FromSeconds(5))
-                        .DebuggerTimeout()
                         .RemoveInterceptor<CachingInterceptor>()
                         .RemoveInterceptor<RetryingInterceptor>())
                     .ConfigureMessagingClient(GenericOptionsNames.DefaultName, b => b
                         .TimeoutIn(TimeSpan.FromSeconds(5))
-                        .DebuggerTimeout()
                         .RemoveInterceptor<CachingInterceptor>()
                         .RemoveInterceptor<RetryingInterceptor>())
                     .ConfigureGenericHandlerProxyOptions(o => o.ResponsePoll = new ConstantBackoff

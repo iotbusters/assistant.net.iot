@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="assistant.net.messaging.sqlite.client" Version="0.4.145" />
-    <PackageReference Include="assistant.net.messaging.sqlite.server" Version="0.4.145" />
+    <PackageReference Include="assistant.net.messaging.sqlite.client" Version="0.4.151" />
+    <PackageReference Include="assistant.net.messaging.sqlite.server" Version="0.4.151" />
     <PackageReference Include="coverlet.collector" Version="3.2.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

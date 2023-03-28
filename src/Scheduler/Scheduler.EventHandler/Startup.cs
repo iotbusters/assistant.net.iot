@@ -1,10 +1,11 @@
 ﻿using Assistant.Net.Messaging;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Options;
 using Assistant.Net.Scheduler.Contracts;
 using Assistant.Net.Scheduler.Contracts.Commands;
 using Assistant.Net.Scheduler.Contracts.Queries;
 using Assistant.Net.Scheduler.EventHandler.Handlers;
+using Assistant.Net.Storage;
+using Assistant.Net.Storage.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -43,6 +44,6 @@ public sealed class Startup
             .AddHandler<RunFailedEventHandler>());
 
     private void ConfigureMessaging(MongoOptions options) => options
-        .Connection(Configuration.GetConnectionString(ConfigurationNames.Messaging))
+        .Connection(Configuration.GetConnectionString(ConfigurationNames.Messaging)!)
         .Database(SchedulerMongoNames.DatabaseName);
 }

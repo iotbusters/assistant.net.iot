@@ -1,6 +1,5 @@
 using Assistant.Net.Messaging;
 using Assistant.Net.Messaging.Options;
-using Assistant.Net.Options;
 using Assistant.Net.Scheduler.Api.Conventions;
 using Assistant.Net.Scheduler.Api.Handlers;
 using Assistant.Net.Scheduler.Api.Middlewares;
@@ -9,6 +8,7 @@ using Assistant.Net.Scheduler.Contracts.Events;
 using Assistant.Net.Scheduler.Contracts.Models;
 using Assistant.Net.Serialization.Converters;
 using Assistant.Net.Storage;
+using Assistant.Net.Storage.Options;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;

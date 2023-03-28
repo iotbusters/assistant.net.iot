@@ -22,7 +22,7 @@ internal sealed class RunFailedEventHandler : IMessageHandler<RunFailedEvent>
     {
         var run = await client.Request(new RunQuery(@event.RunId), token);
         logger.LogCritical("Run({AutomationId}, {RunId}): failed.", run.AutomationId, run.Id);
-        // note: automation is implicitly blocked.
-        // todo: resolve run failure and automation blocking.
+
+        // note: new run isn't triggered so the automation is blocked.
     }
 }
